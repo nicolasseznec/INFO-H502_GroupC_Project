@@ -10,9 +10,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #define some variable
-set(COMPILE_LAB02 ON CACHE BOOL "Compile the second Lab")
-set(COMPILE_LAB03 ON CACHE BOOL "Compile the third Lab")
-set(COMPILE_SOLUTIONS ON CACHE BOOL "Compile the solutions")
+# set(COMPILE_LAB03 ON CACHE BOOL "Compile the third Lab")
 
 
 find_package(OpenGL REQUIRED)
@@ -28,18 +26,16 @@ option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(3rdParty/glfw)
 
-
-
-include_directories(3rdParty/glad/include/
+include_directories(include/
+                    3rdParty/glad/include/
                     3rdParty/glfw/include/
                     3rdParty/glm/
-                    3rdParty/stb/)
+                    3rdParty/stb/
+                    )
 
 
-if(COMPILE_LAB02)
-	add_subdirectory(LAB02)
-endif()
+add_subdirectory(src)
 
-if(COMPILE_LAB03)
-	add_subdirectory(LAB03)
-endif()
+# if(COMPILE_LAB03)
+# 	add_subdirectory(LAB03)
+# endif()
