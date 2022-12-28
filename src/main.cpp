@@ -16,6 +16,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
+#include "input.h"
 #include "debug.h"
 
 
@@ -25,12 +26,9 @@ const int height = 500;
 
 GLuint compileShader(std::string shaderCode, GLenum shaderType);
 GLuint compileProgram(GLuint vertexShader, GLuint fragmentShader);
-void processInput(GLFWwindow* window);
+// void processInput(GLFWwindow* window);
 
 void loadCubemapFace(const char* file, const GLenum& targetCube);
-
-Camera camera(glm::vec3(0.0, 0.0, 0.1));
-
 
 int main(int argc, char* argv[])
 {
@@ -182,6 +180,7 @@ int main(int argc, char* argv[])
 		}
 	};
 
+    Camera camera(glm::vec3(0.0, 0.0, 0.1));
 
 	glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::mat4 model = glm::mat4(1.0);
@@ -210,9 +209,6 @@ int main(int argc, char* argv[])
 	shader.setFloat("light.constant", 1.0);
 	shader.setFloat("light.linear", 0.14);
 	shader.setFloat("light.quadratic", 0.07);
-
-
-
 
 	GLuint cubeMapTexture;
 	glGenTextures(1, &cubeMapTexture);
@@ -257,7 +253,8 @@ int main(int argc, char* argv[])
 	glfwSwapInterval(1);
 
 	while (!glfwWindowShouldClose(window)) {
-		processInput(window);
+		// processInput(window);
+		processInput(window, camera);
 		view = camera.GetViewMatrix();
 		glfwPollEvents();
 		double now = glfwGetTime();
@@ -323,30 +320,3 @@ void loadCubemapFace(const char* path, const GLenum& targetFace)
 	}
 	stbi_image_free(data);
 }
-
-void processInput(GLFWwindow* window) {
-	//3. Use the cameras class to change the parameters of the camera
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboardMovement(LEFT, 0.1);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboardMovement(RIGHT, 0.1);
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboardMovement(FORWARD, 0.1);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboardMovement(BACKWARD, 0.1);
-
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		camera.ProcessKeyboardRotation(1, 0.0, 1);
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		camera.ProcessKeyboardRotation(-1, 0.0, 1);
-
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		camera.ProcessKeyboardRotation(0.0, 1.0, 1);
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		camera.ProcessKeyboardRotation(0.0, -1.0, 1);
-}
-
