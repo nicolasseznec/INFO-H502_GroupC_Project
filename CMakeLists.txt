@@ -26,12 +26,10 @@ option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(3rdParty/glfw)
 
-include_directories(include/
-                    3rdParty/glad/include/
+include_directories(3rdParty/glad/include/
                     3rdParty/glfw/include/
                     3rdParty/glm/
-                    3rdParty/stb/
-                    )
+                    3rdParty/stb/)
 
 
 add_subdirectory(src)
