@@ -74,84 +74,13 @@ int main(int argc, char* argv[])
     setupDebug();
 #endif
 
-	const std::string sourceV = "#version 330 core\n"
-		"in vec3 position; \n"
-		"in vec2 tex_coords; \n"
-		"in vec3 normal; \n"
-
-		"out vec3 v_frag_coord; \n"
-		"out vec3 v_normal; \n"
-
-		"uniform mat4 M; \n"
-		"uniform mat4 itM; \n"
-		"uniform mat4 V; \n"
-		"uniform mat4 P; \n"
-
-
-		" void main(){ \n"
-		"vec4 frag_coord = M*vec4(position, 1.0); \n"
-		"gl_Position = P*V*frag_coord; \n"
-		"v_normal = vec3(itM * vec4(normal, 1.0)); \n"
-		"v_frag_coord = frag_coord.xyz; \n"
-		"\n"
-		"}\n";
-
-	const std::string sourceF = "#version 400 core\n"
-		"out vec4 FragColor;\n"
-		"precision mediump float; \n"
-
-		"in vec3 v_frag_coord; \n"
-		"in vec3 v_normal; \n"
-
-		"uniform vec3 u_view_pos; \n"
-
-		"uniform samplerCube cubemapSampler; \n"
-		"uniform float refractionIndice;\n"
-
-		"void main() { \n"
-		"float ratio = 1.00 / refractionIndice;\n"
-		"vec3 N = normalize(v_normal);\n"
-		"vec3 V = normalize(u_view_pos - v_frag_coord); \n"
-		"vec3 R = refract(-V,N,ratio); \n"
-		"FragColor = texture(cubemapSampler,R); \n"
-		"} \n";
-
-	Shader shader(sourceV, sourceF);
-
-	const std::string sourceVCubeMap = "#version 330 core\n"
-		"in vec3 position; \n"
-		"in vec2 tex_coords; \n"
-		"in vec3 normal; \n"
-
-		//only P and V are necessary
-		"uniform mat4 V; \n"
-		"uniform mat4 P; \n"
-
-		"out vec3 texCoord_v; \n"
-
-		" void main(){ \n"
-		"texCoord_v = position;\n"
-		//remove translation info from view matrix to only keep rotation
-		"mat4 V_no_rot = mat4(mat3(V)) ;\n"
-		"vec4 pos = P * V_no_rot * vec4(position, 1.0); \n"
-		// the positions xyz are divided by w after the vertex shader
-		// the z component is equal to the depth value
-		// we want a z always equal to 1.0 here, so we set z = w!
-		// Remember: z=1.0 is the MAXIMUM depth value ;)
-		"gl_Position = pos.xyww;\n"
-		"\n"
-		"}\n";
-
-	const std::string sourceFCubeMap =
-		"#version 330 core\n"
-		"out vec4 FragColor;\n"
-		"precision mediump float; \n"
-		"uniform samplerCube cubemapSampler; \n"
-		"in vec3 texCoord_v; \n"
-		"void main() { \n"
-		"FragColor = texture(cubemapSampler,texCoord_v); \n"
-		"} \n";
-
+	char sourceV[] = PATH_TO_SHADERS "/simple.vert";
+	char sourceF[] = PATH_TO_SHADERS "/simple.frag";
+	
+	char sourceVCubeMap[] = PATH_TO_SHADERS "/cubeMap.vert";
+	char sourceFCubeMap[] = PATH_TO_SHADERS "/cubeMap.frag";
+	
+	Shader shader = Shader(sourceV, sourceF);
 
 	Shader cubeMapShader = Shader(sourceVCubeMap, sourceFCubeMap);
 

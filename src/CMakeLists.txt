@@ -10,6 +10,8 @@ set(SOURCE_MAIN "main.cpp" "camera.h" "shader.h" "object.h" "debug.h")
 add_compile_definitions(PATH_TO_OBJECTS="${CMAKE_SOURCE_DIR}/res/objects")
 add_compile_definitions(PATH_TO_TEXTURE="${CMAKE_SOURCE_DIR}/res/textures")
 
+add_compile_definitions(PATH_TO_SHADERS="${CMAKE_CURRENT_SOURCE_DIR}/shaders")
+
 
 # add_executable(${PROJECT_NAME}_ex10 ${SOURCES_EX_10})
 # target_link_libraries(${PROJECT_NAME}_ex10 PUBLIC OpenGL::GL glfw glad)
