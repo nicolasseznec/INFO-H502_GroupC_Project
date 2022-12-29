@@ -76,6 +76,38 @@ int main(int argc, char* argv[])
 	Object sphere1(path);
 	sphere1.makeObject(shader);
 
+	// --------------- TODO : Proper Texture loading ----------------------
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_set_flip_vertically_on_load(true);
+	int imWidth, imHeight, imNrChannels;
+	char file[] = PATH_TO_TEXTURE "/pool_table/colorMap.png";
+	unsigned char* data = stbi_load(file, &imWidth, &imHeight, &imNrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "Failed to Load texture" << std::endl;
+		const char* reason = stbi_failure_reason();
+		std::cout << reason << std::endl;
+	}
+	stbi_set_flip_vertically_on_load(false);
+	stbi_image_free(data);
+
+
+	// -------------------------------------
+
+
 	char sourceVSimple[] = PATH_TO_SHADERS "/simple.vert";
 	char sourceFSimple[] = PATH_TO_SHADERS "/simple.frag";
 	Shader simpleShader = Shader(sourceVSimple, sourceFSimple);
@@ -115,7 +147,8 @@ int main(int argc, char* argv[])
 
     Camera camera(glm::vec3(0.0, 0.0, 0.1));
 
-	glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
+	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
+	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	glm::mat4 model = glm::mat4(1.0);
 	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
 	model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
@@ -144,25 +177,7 @@ int main(int argc, char* argv[])
 	simpleShader.setFloat("light.quadratic", 0.07);
 
 	shader.use();
-	shader.setFloat("shininess", 32.0f);
-	shader.setVector3f("materialColour", materialColour);
-	shader.setFloat("light.ambient_strength", ambient);
-	shader.setFloat("light.diffuse_strength", diffuse);
-	shader.setFloat("light.specular_strength", specular);
-	shader.setFloat("light.constant", 1.0);
-	shader.setFloat("light.linear", 0.14);
-	shader.setFloat("light.quadratic", 0.07);
-
-	/*
-        Refraction indices:
-        Air:      1.0
-        Water:    1.33
-        Ice:      1.309
-        Glass:    1.52
-        Diamond:  2.42
-    */
 	shader.setFloat("refractionIndice", 1.52);
-
 
 	glfwSwapInterval(1);
 
@@ -175,11 +190,16 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		simpleShader.use();
-		shader.setMatrix4("M", model);
-		shader.setMatrix4("itM", inverseModel);
-		shader.setMatrix4("V", view);
-		shader.setMatrix4("P", perspective);
-		shader.setVector3f("u_view_pos", camera.Position);
+
+		simpleShader.setInteger("u_texture", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		simpleShader.setMatrix4("M", model);
+		simpleShader.setMatrix4("itM", inverseModel);
+		simpleShader.setMatrix4("V", view);
+		simpleShader.setMatrix4("P", perspective);
+		simpleShader.setVector3f("u_view_pos", camera.Position);
 		pool_table.draw();
 
 

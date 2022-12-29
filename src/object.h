@@ -172,18 +172,20 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
 
+		std::cout << "position" << std::endl;
 		auto att_pos = glGetAttribLocation(shader.ID, "position");
 		glEnableVertexAttribArray(att_pos);
 		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
 
 		
 		if (texture) {
-			auto att_tex = glGetAttribLocation(shader.ID, "tex_coord");
+			std::cout << "texture" << std::endl;
+			auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
 			glEnableVertexAttribArray(att_tex);
 			glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-			
 		}
 		
+		std::cout << "normal" << std::endl;
 		auto att_col = glGetAttribLocation(shader.ID, "normal");
 		glEnableVertexAttribArray(att_col);
 		glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
@@ -193,6 +195,7 @@ public:
 		glBindVertexArray(0);
 		delete[] data;
 
+		std::cout << "Made model with " << numVertices << " vertices" << std::endl;
 	}
 
 	void draw() {
