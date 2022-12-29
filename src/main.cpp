@@ -64,8 +64,8 @@ int main(int argc, char* argv[])
 
 	/*-----------------------------------------------------------*/
 
-	char sourceV[] = PATH_TO_SHADERS "/simple.vert";
-	char sourceF[] = PATH_TO_SHADERS "/simple.frag";
+	char sourceV[] = PATH_TO_SHADERS "/refraction.vert";
+	char sourceF[] = PATH_TO_SHADERS "/refraction.frag";
 	Shader shader = Shader(sourceV, sourceF);
 	
 	char sourceVCubeMap[] = PATH_TO_SHADERS "/cubeMap.vert";
@@ -75,6 +75,15 @@ int main(int argc, char* argv[])
 	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
 	Object sphere1(path);
 	sphere1.makeObject(shader);
+
+	char sourceVSimple[] = PATH_TO_SHADERS "/simple.vert";
+	char sourceFSimple[] = PATH_TO_SHADERS "/simple.frag";
+	Shader simpleShader = Shader(sourceVSimple, sourceFSimple);
+
+	char tablePath[] = PATH_TO_OBJECTS "/pool_table.obj";
+	Object pool_table(tablePath);
+	pool_table.makeObject(simpleShader);
+
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -123,6 +132,17 @@ int main(int argc, char* argv[])
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
 	//Rendering
+
+	simpleShader.use();
+	simpleShader.setFloat("shininess", 32.0f);
+	simpleShader.setVector3f("materialColour", materialColour);
+	simpleShader.setFloat("light.ambient_strength", ambient);
+	simpleShader.setFloat("light.diffuse_strength", diffuse);
+	simpleShader.setFloat("light.specular_strength", specular);
+	simpleShader.setFloat("light.constant", 1.0);
+	simpleShader.setFloat("light.linear", 0.14);
+	simpleShader.setFloat("light.quadratic", 0.07);
+
 	shader.use();
 	shader.setFloat("shininess", 32.0f);
 	shader.setVector3f("materialColour", materialColour);
@@ -154,6 +174,14 @@ int main(int argc, char* argv[])
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		simpleShader.use();
+		shader.setMatrix4("M", model);
+		shader.setMatrix4("itM", inverseModel);
+		shader.setMatrix4("V", view);
+		shader.setMatrix4("P", perspective);
+		shader.setVector3f("u_view_pos", camera.Position);
+		pool_table.draw();
+
 
 		shader.use();
 
@@ -162,7 +190,7 @@ int main(int argc, char* argv[])
 		shader.setMatrix4("V", view);
 		shader.setMatrix4("P", perspective);
 		shader.setVector3f("u_view_pos", camera.Position);
-
+		
 		skybox.bindTexture();
 		// cubeMapShader.setInteger("cubemapTexture", 0);
 
