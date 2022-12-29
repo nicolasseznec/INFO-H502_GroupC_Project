@@ -1,5 +1,5 @@
 #version 400 core
-
+// TODO : Advanced lights, see Lab3ex7 
 
 precision mediump float; 
 in vec3 v_frag_coord; 
