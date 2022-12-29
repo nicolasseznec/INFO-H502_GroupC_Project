@@ -6,9 +6,6 @@
 
 #include <glad/glad.h>
 
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "stb_image.h"
-
 #include "shader.h"
 #include "object.h"
 
@@ -27,8 +24,6 @@ public:
     ) : cubeMap(cubePath) {
         glGenTextures(1, &cubeMapTexture);
         bindTexture();
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
 
         // texture parameters
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -41,30 +36,11 @@ public:
 
         std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
 
-        // std::map<std::string, GLenum> facesToLoad;
-        // std::map<std::string, GLenum> facesToLoad = {
-        //     {pathToCubeMap + faces[0].c_str(), GL_TEXTURE_CUBE_MAP_POSITIVE_X},
-        //     {pathToCubeMap + posY, GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
-        //     {pathToCubeMap + posZ, GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
-        //     {pathToCubeMap + negX, GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
-        //     {pathToCubeMap + negY, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
-        //     {pathToCubeMap + negZ, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
-        // };
-
-        // for (int i = 0; i < faces.size(); i++) {
-        //     facesToLoad[pathToCubeMap + faces[i].c_str()] = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-        // }
-
         //load the six faces
         for (std::pair<std::string, GLenum> pair : faces) {
-        // for (int i = 0; i < faces.size(); i++) {
             loadCubemapFace((path + pair.first).c_str(), pair.second);
         }
-
-        // char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
-	    // cubeMap = Object(pathCube);
 	    cubeMap.makeObject(shader);
-
     }
 
     void loadCubemapFace(const char* path, const GLenum& targetFace)
