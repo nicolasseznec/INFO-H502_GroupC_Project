@@ -23,6 +23,7 @@
 const int width = 500;
 const int height = 500;
 
+GLuint loadTexture(const char* file);
 
 int main(int argc, char* argv[])
 {
@@ -72,41 +73,9 @@ int main(int argc, char* argv[])
 	char sourceFCubeMap[] = PATH_TO_SHADERS "/cubeMap.frag";
 	Shader cubeMapShader = Shader(sourceVCubeMap, sourceFCubeMap);
 
-	char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
-	Object sphere1(path);
-	sphere1.makeObject(shader);
-
-	// --------------- TODO : Proper Texture loading ----------------------
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-	int imWidth, imHeight, imNrChannels;
-	char file[] = PATH_TO_TEXTURE "/pool_table/colorMap.png";
-	unsigned char* data = stbi_load(file, &imWidth, &imHeight, &imNrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "Failed to Load texture" << std::endl;
-		const char* reason = stbi_failure_reason();
-		std::cout << reason << std::endl;
-	}
-	stbi_set_flip_vertically_on_load(false);
-	stbi_image_free(data);
-
-
-	// -------------------------------------
-
+	
+	GLuint texture = loadTexture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
+	GLuint textureBall = loadTexture(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
 
 	char sourceVSimple[] = PATH_TO_SHADERS "/simple.vert";
 	char sourceFSimple[] = PATH_TO_SHADERS "/simple.frag";
@@ -115,6 +84,11 @@ int main(int argc, char* argv[])
 	char tablePath[] = PATH_TO_OBJECTS "/pool_table.obj";
 	Object pool_table(tablePath);
 	pool_table.makeObject(simpleShader);
+
+	// char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
+	char path[] = PATH_TO_OBJECTS "/pool_ball.obj";
+	Object ball(path);
+	ball.makeObject(simpleShader);
 
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
@@ -151,7 +125,7 @@ int main(int argc, char* argv[])
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	glm::mat4 model = glm::mat4(1.0);
 	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
-	model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
 
 	glm::mat4 inverseModel = glm::transpose(glm::inverse(model));
 
@@ -203,18 +177,23 @@ int main(int argc, char* argv[])
 		pool_table.draw();
 
 
-		shader.use();
+		// shader.use();
 
-		shader.setMatrix4("M", model);
-		shader.setMatrix4("itM", inverseModel);
-		shader.setMatrix4("V", view);
-		shader.setMatrix4("P", perspective);
-		shader.setVector3f("u_view_pos", camera.Position);
+		// shader.setMatrix4("M", model);
+		// shader.setMatrix4("itM", inverseModel);
+		// shader.setMatrix4("V", view);
+		// shader.setMatrix4("P", perspective);
+		// shader.setVector3f("u_view_pos", camera.Position);
 		
-		skybox.bindTexture();
+		// skybox.bindTexture();
 		// cubeMapShader.setInteger("cubemapTexture", 0);
 
-		sphere1.draw();
+		simpleShader.setInteger("u_texture", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureBall);
+
+		skybox.bindTexture();
+		ball.draw();
 
 		glDepthFunc(GL_LEQUAL);
 		cubeMapShader.use();
@@ -233,4 +212,36 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
 	return 0;
+}
+
+
+// TODO : Proper Texture loading
+GLuint loadTexture(const char* file) {
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_set_flip_vertically_on_load(true);
+	int imWidth, imHeight, imNrChannels;
+	unsigned char* data = stbi_load(file, &imWidth, &imHeight, &imNrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "Failed to Load texture" << std::endl;
+		const char* reason = stbi_failure_reason();
+		std::cout << reason << std::endl;
+	}
+	stbi_set_flip_vertically_on_load(false);
+	stbi_image_free(data);
+
+	return texture;
 }

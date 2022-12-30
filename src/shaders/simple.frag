@@ -43,5 +43,6 @@ void main() {
     // FragColor = vec4(materialColour * vec3(light), 1.0); 
     
 
-    FragColor = vec4(texture(u_texture, v_tex).xyz * vec3(light), 1.0);
+    // FragColor = vec4(texture(u_texture, v_tex).xyz * vec3(light), 1.0);
+    FragColor = texture(u_texture, v_tex);
 } 
