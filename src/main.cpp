@@ -65,29 +65,22 @@ int main(int argc, char* argv[])
 
 	/*-----------------------------------------------------------*/
 
-	char sourceV[] = PATH_TO_SHADERS "/refraction.vert";
-	char sourceF[] = PATH_TO_SHADERS "/refraction.frag";
-	Shader shader = Shader(sourceV, sourceF);
+	Shader shader(PATH_TO_SHADERS "/refraction.vert", 
+				  PATH_TO_SHADERS "/refraction.frag");
 	
-	char sourceVCubeMap[] = PATH_TO_SHADERS "/cubeMap.vert";
-	char sourceFCubeMap[] = PATH_TO_SHADERS "/cubeMap.frag";
-	Shader cubeMapShader = Shader(sourceVCubeMap, sourceFCubeMap);
+	Shader cubeMapShader(PATH_TO_SHADERS "/cubeMap.vert", 
+						 PATH_TO_SHADERS "/cubeMap.frag");
 
-	
+	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
+						PATH_TO_SHADERS "/simple.frag");
+
 	GLuint texture = loadTexture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
 	GLuint textureBall = loadTexture(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
 
-	char sourceVSimple[] = PATH_TO_SHADERS "/simple.vert";
-	char sourceFSimple[] = PATH_TO_SHADERS "/simple.frag";
-	Shader simpleShader = Shader(sourceVSimple, sourceFSimple);
-
-	char tablePath[] = PATH_TO_OBJECTS "/pool_table.obj";
-	Object pool_table(tablePath);
+	Object pool_table(PATH_TO_OBJECTS "/pool_table.obj");
 	pool_table.makeObject(simpleShader);
 
-	// char path[] = PATH_TO_OBJECTS "/sphere_smooth.obj";
-	char path[] = PATH_TO_OBJECTS "/pool_ball.obj";
-	Object ball(path);
+	Object ball(PATH_TO_OBJECTS "/pool_ball.obj");
 	ball.makeObject(simpleShader);
 
 
@@ -104,6 +97,8 @@ int main(int argc, char* argv[])
 
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube, cubeMapShader);
 
+
+	// TODO : put fps/time management in a general update system (used to update the objects in the scene, etc...)
 	double prev = 0;
 	int deltaFrame = 0;
 	//fps function
@@ -120,25 +115,25 @@ int main(int argc, char* argv[])
 	};
 
     Camera camera(glm::vec3(0.0, 0.0, 0.1));
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 perspective = camera.GetProjectionMatrix();
+	
 
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
+	
 	glm::mat4 model = glm::mat4(1.0);
 	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
 	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
 
 	glm::mat4 inverseModel = glm::transpose(glm::inverse(model));
 
-	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix();
-
+	//Rendering
 	float ambient = 0.1;
 	float diffuse = 0.5;
 	float specular = 0.8;
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
-
-	//Rendering
 
 	simpleShader.use();
 	simpleShader.setFloat("shininess", 32.0f);
@@ -153,8 +148,9 @@ int main(int argc, char* argv[])
 	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
 
-	glfwSwapInterval(1);
+	/*-----------------------------------------------------------*/
 
+	glfwSwapInterval(1);
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window, camera);
 		view = camera.GetViewMatrix();
@@ -165,7 +161,7 @@ int main(int argc, char* argv[])
 
 		simpleShader.use();
 
-		simpleShader.setInteger("u_texture", 0);
+		simpleShader.setInteger("u_texture", 0);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -206,6 +202,8 @@ int main(int argc, char* argv[])
 		fps(now);
 		glfwSwapBuffers(window);
 	}
+	
+	/*-----------------------------------------------------------*/
 
 	//clean up ressource
 	glfwDestroyWindow(window);
@@ -219,7 +217,7 @@ int main(int argc, char* argv[])
 GLuint loadTexture(const char* file) {
 	GLuint texture;
 	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
+	// glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);

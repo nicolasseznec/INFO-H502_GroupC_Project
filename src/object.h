@@ -142,7 +142,6 @@ public:
 	}
 
 
-
 	void makeObject(Shader shader, bool texture = true) {
 		/* This is a working but not perfect solution, you can improve it if you need/want
 		* What happens if you call this function twice on an Model ?
@@ -172,21 +171,21 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
 
-		std::cout << "position" << std::endl;
-		auto att_pos = glGetAttribLocation(shader.ID, "position");
+		// TODO : find a proper way to set the attribute locations
+		// auto att_pos = glGetAttribLocation(shader.ID, "position");
+		auto att_pos = 0;
 		glEnableVertexAttribArray(att_pos);
 		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
 
-		
 		if (texture) {
-			std::cout << "texture" << std::endl;
-			auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
+			// auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
+			auto att_tex = 1;
 			glEnableVertexAttribArray(att_tex);
 			glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 		}
 		
-		std::cout << "normal" << std::endl;
-		auto att_col = glGetAttribLocation(shader.ID, "normal");
+		// auto att_col = glGetAttribLocation(shader.ID, "normal_coords");
+		auto att_col = 2;
 		glEnableVertexAttribArray(att_col);
 		glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 		
@@ -195,7 +194,7 @@ public:
 		glBindVertexArray(0);
 		delete[] data;
 
-		std::cout << "Made model with " << numVertices << " vertices" << std::endl;
+		// std::cout << "Made model with " << numVertices << " vertices" << std::endl;
 	}
 
 	void draw() {
