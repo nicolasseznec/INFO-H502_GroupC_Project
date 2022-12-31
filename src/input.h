@@ -16,26 +16,31 @@ public:
 	};
 
 	ScrollType scroll = ZOOM;
+
+	bool cursorKeyPressed = false;
 	bool cursorEnabled = false;
 
-	double lastMouseX;
-	double lastMouseY;
+	bool firstMouse = true;
+	double lastMouseX = 0;
+	double lastMouseY = 0;
 
 	Camera* camera;
-
-	// InputHandler(Camera* camera) {
-	// 	this->camera = camera;
-	// }
 
 	void processInput(GLFWwindow* window, double deltaTime) {
 		// Window
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 		
-		// if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS) {
-		// 	cursorEnabled = !cursorEnabled;
-		// 	// TODO : set with GL
-		// }
+		// Press Right CTRL to switch between normal cursor and mouse camera aim
+		if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS && !cursorKeyPressed) {
+			cursorKeyPressed = true;
+			firstMouse = true;
+			cursorEnabled = !cursorEnabled;
+			glfwSetInputMode(window, GLFW_CURSOR, cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_RELEASE) {
+			cursorKeyPressed = false;
+		}
 		
 		// Camera Position
 		if (!camera) return;
@@ -79,6 +84,14 @@ public:
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	{
 		if (cursorEnabled || !camera) return;
+		
+		// Avoid using last position the first time
+		if (firstMouse) {
+			lastMouseX = xpos;
+        	lastMouseY = ypos;
+        	firstMouse = false;
+			return;
+		}
 
 		float xoffset = xpos - lastMouseX;
 		float yoffset = lastMouseY - ypos; // reversed since y-coordinates go from bottom to top
@@ -105,7 +118,6 @@ public:
 			break;
 		}
 	}
-	
 };
 
 #endif /* INPUT_H */

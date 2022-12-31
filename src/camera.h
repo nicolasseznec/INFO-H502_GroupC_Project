@@ -115,11 +115,8 @@ public:
         updateRotation(YawRot, PitchRot, constrainPitch);;
     }
 
-    // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessZoomScroll(float yoffset)
     {
-        // Zoom -= yoffset;
-
         float factor = yoffset > 0 ? 0.75f : 1.5f;
         Zoom *= factor; 
         if (Zoom < 10.0f)

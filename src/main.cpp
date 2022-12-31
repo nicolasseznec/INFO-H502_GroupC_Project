@@ -23,13 +23,8 @@
 const int width = 800;
 const int height = 800;
 
-InputHandler inputHandler = InputHandler(); 
-
 GLuint loadTexture(const char* file);
 
-// TODO : find a way to use the callbacks properly 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos); 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset); 
 
 int main(int argc, char* argv[])
 {
@@ -57,8 +52,22 @@ int main(int argc, char* argv[])
 
 	glfwMakeContextCurrent(window);
 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	InputHandler inputHandler = InputHandler();
+
+	// To access the input handler methods from the callbacks
+	glfwSetWindowUserPointer(window, &inputHandler);
+
+	// glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double x, double y) {
+		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
+        	inputHandler->mouse_callback(w,x,y);
+	});
+
+	// glfwSetScrollCallback(window, scroll_callback);
+	glfwSetScrollCallback(window, [](GLFWwindow* w, double x, double y) {
+		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
+        	inputHandler->scroll_callback(w,x,y);
+	});
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -260,12 +269,4 @@ GLuint loadTexture(const char* file) {
 	stbi_image_free(data);
 
 	return texture;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	inputHandler.mouse_callback(window, xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	inputHandler.scroll_callback(window, xoffset, yoffset);
 }
