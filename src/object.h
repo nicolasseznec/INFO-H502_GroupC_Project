@@ -184,7 +184,7 @@ public:
 			glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 		}
 		
-		// auto att_col = glGetAttribLocation(shader.ID, "normal_coords");
+		// auto att_col = glGetAttribLocation(shader.ID, "normal");
 		auto att_col = 2;
 		glEnableVertexAttribArray(att_col);
 		glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));

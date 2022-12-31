@@ -63,6 +63,7 @@ public:
 
     void bindTexture() 
     {
+        // shader.setInteger("cubemapSampler", 0);   
         glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
     }

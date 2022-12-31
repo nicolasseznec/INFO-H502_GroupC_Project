@@ -122,11 +122,9 @@ int main(int argc, char* argv[])
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	
-	glm::mat4 model = glm::mat4(1.0);
-	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
+	pool_table.model = glm::translate(pool_table.model, glm::vec3(0.0, -1.0, -2.0));
+	ball.model = glm::translate(ball.model, glm::vec3(0.0, 0.0, -2.0));
 	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-
-	glm::mat4 inverseModel = glm::transpose(glm::inverse(model));
 
 	//Rendering
 	float ambient = 0.1;
@@ -160,42 +158,34 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		simpleShader.use();
+		simpleShader.setMatrix4("V", view);
+		simpleShader.setMatrix4("P", perspective);
+		simpleShader.setVector3f("u_view_pos", camera.Position);
 
+		// Table
 		simpleShader.setInteger("u_texture", 0);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		simpleShader.setMatrix4("M", model);
-		simpleShader.setMatrix4("itM", inverseModel);
-		simpleShader.setMatrix4("V", view);
-		simpleShader.setMatrix4("P", perspective);
-		simpleShader.setVector3f("u_view_pos", camera.Position);
+		simpleShader.setMatrix4("M", pool_table.model);
+		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(pool_table.model)));
 		pool_table.draw();
 
-
-		// shader.use();
-
-		// shader.setMatrix4("M", model);
-		// shader.setMatrix4("itM", inverseModel);
-		// shader.setMatrix4("V", view);
-		// shader.setMatrix4("P", perspective);
-		// shader.setVector3f("u_view_pos", camera.Position);
-		
-		// skybox.bindTexture();
-		// cubeMapShader.setInteger("cubemapTexture", 0);
-
+		// Ball
 		simpleShader.setInteger("u_texture", 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureBall);
-
-		skybox.bindTexture();
+		
+		simpleShader.setMatrix4("M", ball.model);
+		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(ball.model)));
 		ball.draw();
 
+		// Sky
 		glDepthFunc(GL_LEQUAL);
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		// cubeMapShader.setInteger("cubemapTexture", 0);
+		skybox.bindTexture();
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 

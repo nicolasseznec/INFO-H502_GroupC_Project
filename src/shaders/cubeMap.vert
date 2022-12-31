@@ -3,7 +3,7 @@
 
 layout (location = 0) in vec3 position; 
 layout (location = 1) in vec2 tex_coords; 
-layout (location = 2) in vec3 normal_coords; 
+layout (location = 2) in vec3 normal; 
 
 //only P and V are necessary
 uniform mat4 V; 
