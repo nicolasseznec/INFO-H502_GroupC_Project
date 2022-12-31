@@ -18,11 +18,12 @@ enum Camera_Movement {
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-// const float SPEED = 2.5f;
-// const float SPEED = 1.25f;
-const float SPEED = 0.5f;
-const float SENSITIVITY = 0.1f;
-const float ZOOM = 45.0f;
+const float SPEED = 2.0f;
+
+const float M_SENSITIVITY = 0.08f;
+const float KB_SENSITIVITY = 50.0f;
+// const float ZOOM = 45.0f;
+const float ZOOM = 80.0f;
 
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
@@ -35,16 +36,24 @@ public:
     glm::vec3 Up;
     glm::vec3 Right;
     glm::vec3 WorldUp;
+
     // euler Angles
     float Yaw;
     float Pitch;
+
     // camera options
     float MovementSpeed;
+    float KeyboardSensitivity;
     float MouseSensitivity;
     float Zoom;
 
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(
+        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
+        float yaw = YAW, 
+        float pitch = PITCH
+        ) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(M_SENSITIVITY), KeyboardSensitivity(KB_SENSITIVITY), Zoom(ZOOM)
     {
         this->Position = position;
         this->WorldUp = up;
@@ -52,8 +61,9 @@ public:
         this->Pitch = pitch;
         this->updateCameraVectors();
     }
+
     // constructor with scalar values
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(M_SENSITIVITY), KeyboardSensitivity(KB_SENSITIVITY), Zoom(ZOOM)
     {
         this->Position = glm::vec3(posX, posY, posZ);
         this->WorldUp = glm::vec3(upX, upY, upZ);
@@ -70,7 +80,7 @@ public:
 
     glm::mat4 GetProjectionMatrix(float fov=45.0, float ratio=1.0, float near=0.01, float far=100.0)
     {
-        return glm::perspective(fov, ratio, near, far);
+        return glm::perspective(glm::radians(Zoom), ratio, near, far); // TODO : fov not used
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -87,44 +97,59 @@ public:
             this->Position += this->Right * velocity;
     }
 
-    void ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, GLboolean constrainPitch = true)
+    void ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, bool constrainPitch = true)
     {
-        float velocity = this->MovementSpeed * deltaTime;
+        float velocity = this->KeyboardSensitivity * deltaTime;
         YawRot *= velocity;
         PitchRot *= velocity;
 
-        this->Yaw += YawRot;
-        this->Pitch += PitchRot;
-
-
-        // Make sure that when pitch is out of bounds, screen doesn't get flipped
-        if (constrainPitch)
-        {
-            if (this->Pitch > 89.0f)
-                this->Pitch = 89.0f;
-            if (this->Pitch < -89.0f)
-                this->Pitch = -89.0f;
-        }
-        updateCameraVectors();
-
+        updateRotation(YawRot, PitchRot, constrainPitch);
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+    void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true)
     {
-        /* The motivated students can implement rotation using the mouse rather than the keyboard
-        * You can draw inspiration from the ProcessKeyboardMovement function
-        */
+		float YawRot = xoffset * MouseSensitivity;
+		float PitchRot = yoffset * MouseSensitivity;
+
+        updateRotation(YawRot, PitchRot, constrainPitch);;
     }
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
-    void ProcessMouseScroll(float yoffset)
+    void ProcessZoomScroll(float yoffset)
     {
-        Zoom -= (float)yoffset;
-        if (Zoom < 1.0f)
-            Zoom = 1.0f;
-        if (Zoom > 45.0f)
-            Zoom = 45.0f;
+        // Zoom -= yoffset;
+
+        float factor = yoffset > 0 ? 0.75f : 1.5f;
+        Zoom *= factor; 
+        if (Zoom < 10.0f)
+            Zoom = 10.0f;
+        if (Zoom > ZOOM)
+            Zoom = ZOOM;
+    }
+
+    void ProcessSpeedScroll(float yoffset) {
+        float factor = yoffset < 0 ? 0.75f : 1.5f;
+        MovementSpeed *= factor;
+        if (MovementSpeed < SPEED * 0.1f)
+            MovementSpeed = SPEED * 0.1f;
+        if (MovementSpeed > SPEED * 10.0f)
+            MovementSpeed = SPEED * 10.0f;
+    }
+
+    void ProcessSensitivityScroll(float yoffset) {
+        float factor = yoffset < 0 ? 0.75f : 1.5f;
+        MouseSensitivity *= factor;
+        if (MouseSensitivity < M_SENSITIVITY * 0.1f)
+            MouseSensitivity = M_SENSITIVITY * 0.1f;
+        if (MouseSensitivity > M_SENSITIVITY * 10.0f)
+            MouseSensitivity = M_SENSITIVITY * 10.0f;
+    }
+
+    void ResetProperties() {
+        MovementSpeed = SPEED;
+        Zoom = ZOOM;
+        MouseSensitivity = M_SENSITIVITY;
     }
 
 private:
@@ -140,6 +165,22 @@ private:
         // also re-calculate the Right and Up vector
         Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
+    }
+
+    void updateRotation(float yawRot, float pitchRot, bool constrainPitch = true) {
+        this->Yaw += yawRot;
+        this->Pitch += pitchRot;
+
+        if (constrainPitch) this->constrainPitch();
+        updateCameraVectors();   
+    }
+
+    void constrainPitch() {
+        // Make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (this->Pitch > 89.0f)
+            this->Pitch = 89.0f;
+        if (this->Pitch < -89.0f)
+            this->Pitch = -89.0f;      
     }
 };
 

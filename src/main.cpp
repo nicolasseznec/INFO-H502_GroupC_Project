@@ -20,10 +20,16 @@
 #include "debug.h"
 #include "skybox.h"
 
-const int width = 500;
-const int height = 500;
+const int width = 800;
+const int height = 800;
+
+InputHandler inputHandler = InputHandler(); 
 
 GLuint loadTexture(const char* file);
+
+// TODO : find a way to use the callbacks properly 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos); 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset); 
 
 int main(int argc, char* argv[])
 {
@@ -50,6 +56,12 @@ int main(int argc, char* argv[])
 	}
 
 	glfwMakeContextCurrent(window);
+
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 
 	//load openGL function
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -98,26 +110,10 @@ int main(int argc, char* argv[])
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube, cubeMapShader);
 
 
-	// TODO : put fps/time management in a general update system (used to update the objects in the scene, etc...)
-	double prev = 0;
-	int deltaFrame = 0;
-	//fps function
-	auto fps = [&](double now) {
-		double deltaTime = now - prev;
-		deltaFrame++;
-		if (deltaTime > 0.5) {
-			prev = now;
-			const double fpsCount = (double)deltaFrame / deltaTime;
-			deltaFrame = 0;
-			std::cout << "\r FPS: " << fpsCount;
-			std::cout.flush();
-		}
-	};
-
     Camera camera(glm::vec3(0.0, 0.0, 0.1));
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
-	
+	inputHandler.camera = &camera;
 
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
@@ -148,12 +144,43 @@ int main(int argc, char* argv[])
 
 	/*-----------------------------------------------------------*/
 
+	// TODO : put fps/time management in a general update system (used to update the objects in the scene, etc...)
+
+	double prev = 0;
+	int frames = 0;
+	
+	//fps function
+	auto fps = [&](double now) {
+		double delta = now - prev;
+		frames++;
+		if (delta > 0.5) {
+			prev = now;
+			const double fpsCount = (double)frames / delta;
+			frames = 0;
+			std::cout << "\r FPS: " << fpsCount;
+			std::cout.flush();
+		}
+	};
+	
+	double prevTime = 0;
+	double deltaTime = 0;
+
 	glfwSwapInterval(1);
+	
 	while (!glfwWindowShouldClose(window)) {
-		processInput(window, camera);
-		view = camera.GetViewMatrix();
-		glfwPollEvents();
+
 		double now = glfwGetTime();
+		deltaTime = now - prevTime;
+		prevTime = now;
+
+		fps(now);
+
+		inputHandler.processInput(window, deltaTime);
+		view = camera.GetViewMatrix();
+		perspective = camera.GetProjectionMatrix();
+		glfwPollEvents();
+
+		// ------------- Render -------------
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -171,6 +198,8 @@ int main(int argc, char* argv[])
 		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(pool_table.model)));
 		pool_table.draw();
 
+		// TODO : automate oject drawing (texture binding, uniforms setup, ...)
+		// TODO : All balls use the same model (no need to load it 16 times from the file) 
 		// Ball
 		simpleShader.setInteger("u_texture", 0);
 		glActiveTexture(GL_TEXTURE0);
@@ -189,7 +218,6 @@ int main(int argc, char* argv[])
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 
-		fps(now);
 		glfwSwapBuffers(window);
 	}
 	
@@ -232,4 +260,12 @@ GLuint loadTexture(const char* file) {
 	stbi_image_free(data);
 
 	return texture;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	inputHandler.mouse_callback(window, xpos, ypos);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	inputHandler.scroll_callback(window, xoffset, yoffset);
 }
