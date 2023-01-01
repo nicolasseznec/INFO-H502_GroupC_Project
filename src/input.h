@@ -55,6 +55,11 @@ public:
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 			camera->ProcessKeyboardMovement(BACKWARD, deltaTime);
 
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+			camera->ProcessKeyboardMovement(UP, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+			camera->ProcessKeyboardMovement(DOWN, deltaTime);
+
 		// Camera Rotation (Keyboard)
 		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 			camera->ProcessKeyboardRotation(1.0, 0.0, deltaTime);
@@ -72,10 +77,10 @@ public:
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
 			camera->ResetProperties();
 
-		// Scroll and maintain ALT to change speed or CTRL to change sensitivity
-		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		// Scroll and maintain CTRL to change speed or ALT to change sensitivity
+		if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
 			scroll = SENSITIVITY;
-		else if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+		else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 			scroll = SPEED;
 		else
 			scroll = ZOOM;
