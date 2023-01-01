@@ -1,7 +1,6 @@
 project("src")
 
 # set(SOURCES_EX_10 "exercices/ex10/ex10.cpp" "camera.h" "shader.h" "exercices/object.h")
-# set(SOURCE_MAIN "main.cpp" "camera.h" "shader.h" "object.h" "debug.h" "input.h" "skybox.h")
 set(SOURCE_MAIN "main.cpp" "camera.h" "shader.h" "entity.h" "mesh.h" "debug.h" "input.h" "skybox.h")
 
 # These commands are there to specify the path to the folder containing the object and textures files as macro

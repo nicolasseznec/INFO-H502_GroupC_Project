@@ -15,7 +15,6 @@
 
 #include "camera.h"
 #include "shader.h"
-// #include "object.h"
 #include "entity.h"
 #include "mesh.h"
 #include "input.h"
@@ -100,14 +99,6 @@ int main(int argc, char* argv[])
 	GLuint texture = loadTexture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
 	GLuint textureBall = loadTexture(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
 
-	/*
-	Object pool_table(PATH_TO_OBJECTS "/pool_table.obj");
-	pool_table.makeObject(simpleShader);
-
-	Object ball(PATH_TO_OBJECTS "/pool_ball.obj");
-	ball.makeObject(simpleShader);
-	*/
-
 	Mesh table_mesh(PATH_TO_OBJECTS "/pool_table.obj");
 	Mesh ball_mesh(PATH_TO_OBJECTS "/pool_ball.obj");
 
@@ -137,14 +128,9 @@ int main(int argc, char* argv[])
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	
-	/*
-	pool_table.model = glm::translate(pool_table.model, glm::vec3(0.0, -1.0, -2.0));
-	ball.model = glm::translate(ball.model, glm::vec3(0.0, 0.0, -2.0));
 	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-	*/
 	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
 	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
-
 
 	//Rendering
 	float ambient = 0.1;
@@ -212,28 +198,6 @@ int main(int argc, char* argv[])
 		simpleShader.setMatrix4("V", view);
 		simpleShader.setMatrix4("P", perspective);
 		simpleShader.setVector3f("u_view_pos", camera.Position);
-
-		/*
-		// Table
-		simpleShader.setInteger("u_texture", 0);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0) (Could be done before the loop)
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		simpleShader.setMatrix4("M", pool_table.model);
-		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(pool_table.model)));
-		pool_table.draw();
-
-		// TODO : automate oject drawing (texture binding, uniforms setup, ...)
-		// TODO : All balls use the same model (no need to load it 16 times from the file) 
-		// Ball
-		simpleShader.setInteger("u_texture", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureBall);
-		
-		simpleShader.setMatrix4("M", ball.model);
-		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(ball.model)));
-		ball.draw();
-		*/
 
 		pool_table.draw(simpleShader);
 		ball.draw(simpleShader);
