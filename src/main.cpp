@@ -14,18 +14,16 @@
 #include <map>
 
 #include "camera.h"
+#include "texture.h"
 #include "shader.h"
-#include "entity.h"
 #include "mesh.h"
+#include "entity.h"
 #include "input.h"
 #include "debug.h"
 #include "skybox.h"
 
 const int width = 800;
 const int height = 800;
-
-GLuint loadTexture(const char* file);
-
 
 int main(int argc, char* argv[])
 {
@@ -96,8 +94,8 @@ int main(int argc, char* argv[])
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
 
-	GLuint texture = loadTexture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
-	GLuint textureBall = loadTexture(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
+	Texture texture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
+	Texture textureBall(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
 
 	Mesh table_mesh(PATH_TO_OBJECTS "/pool_table.obj");
 	Mesh ball_mesh(PATH_TO_OBJECTS "/pool_ball.obj");
@@ -116,8 +114,7 @@ int main(int argc, char* argv[])
 		{ "negy.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
 		{ "negz.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
 	};
-	// TODO : Skybox use mesh
-	Skybox skybox(pathToCubeMap, facesToLoad , pathCube, cubeMapShader);
+	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
 
     Camera camera(glm::vec3(0.0, 0.0, 0.1));
@@ -221,36 +218,4 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
 	return 0;
-}
-
-
-// TODO : Proper Texture loading
-GLuint loadTexture(const char* file) {
-	GLuint texture;
-	glGenTextures(1, &texture);
-	// glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-	int imWidth, imHeight, imNrChannels;
-	unsigned char* data = stbi_load(file, &imWidth, &imHeight, &imNrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "Failed to Load texture" << std::endl;
-		const char* reason = stbi_failure_reason();
-		std::cout << reason << std::endl;
-	}
-	stbi_set_flip_vertically_on_load(false);
-	stbi_image_free(data);
-
-	return texture;
 }
