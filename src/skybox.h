@@ -7,13 +7,15 @@
 #include <glad/glad.h>
 
 #include "shader.h"
-#include "object.h"
+// #include "object.h"
+#include "mesh.h"
 
 
 class Skybox
 {
 public:
-    Object cubeMap;
+    // Object cubeMap;
+    Mesh cubeMap;
     GLuint cubeMapTexture;
 
     Skybox(
@@ -40,7 +42,7 @@ public:
         for (std::pair<std::string, GLenum> pair : faces) {
             loadCubemapFace((path + pair.first).c_str(), pair.second);
         }
-	    cubeMap.makeObject(shader);
+	    // cubeMap.makeObject(shader);
     }
 
     void loadCubemapFace(const char* path, const GLenum& targetFace)
@@ -70,6 +72,7 @@ public:
 
     void draw() 
     {
+        // bindTexture()
 		cubeMap.draw();
     }
 
