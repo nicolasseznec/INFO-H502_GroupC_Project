@@ -12,7 +12,9 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN,
 };
 
 // Default camera values
@@ -87,14 +89,22 @@ public:
     void ProcessKeyboardMovement(Camera_Movement direction, float deltaTime)
     {
         float velocity = this->MovementSpeed * deltaTime;
+
         if (direction == FORWARD)
             this->Position += this->Front * velocity;
         if (direction == BACKWARD)
             this->Position -= this->Front * velocity;
+        
         if (direction == LEFT)
             this->Position -= this->Right * velocity;
         if (direction == RIGHT)
             this->Position += this->Right * velocity;
+        
+        if (direction == UP)
+            this->Position += this->Up * velocity;
+        if (direction == DOWN)
+            this->Position -= this->Up * velocity;
+            
     }
 
     void ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, bool constrainPitch = true)
@@ -115,11 +125,8 @@ public:
         updateRotation(YawRot, PitchRot, constrainPitch);;
     }
 
-    // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessZoomScroll(float yoffset)
     {
-        // Zoom -= yoffset;
-
         float factor = yoffset > 0 ? 0.75f : 1.5f;
         Zoom *= factor; 
         if (Zoom < 10.0f)

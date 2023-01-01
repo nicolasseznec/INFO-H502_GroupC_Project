@@ -1,5 +1,5 @@
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef MESH_H
+#define MESH_H
 
 #include <iostream>
 #include <fstream>
@@ -7,22 +7,13 @@
 #include <sstream>
 #include <vector>
 
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+// #include <glm/gtc/matrix_transform.hpp>
 
 
-/*Principe :
-* On donne le path du fichier -> on lit le fichier
-* 2 �tape 
-* 1)load le model -> lit le fichier ligne par ligne
-* liste de position de normal de texture
-* suivant la premi�re lettre : lit les valeur suivant et les met dans un vec puis push dans la bonne liste
-* en gros sotck les data dans une frome de tableau
-*/
 
 struct Vertex {
 	glm::vec3 Position;
@@ -31,7 +22,7 @@ struct Vertex {
 };
 
 
-class Object
+class Mesh
 {
 public:
 	std::vector<glm::vec3> positions;
@@ -43,10 +34,10 @@ public:
 
 	GLuint VBO, VAO;
 
-	glm::mat4 model = glm::mat4(1.0);
+	// glm::mat4 model = glm::mat4(1.0);
 
 
-	Object(const char* path) {
+	Mesh(const char* path) {
 
 		std::ifstream infile(path);
 		//TODO Error management
@@ -134,20 +125,23 @@ public:
 		//std::cout << positions.size() << std::endl;
 		//std::cout << normals.size() << std::endl;
 		//std::cout << textures.size() << std::endl;
-		std::cout << "Load model with " << vertices.size() << " vertices" << std::endl;
+		std::cout << "Loaded mesh with " << vertices.size() << " vertices" << std::endl;
 
 		infile.close();
 
 		numVertices = vertices.size();
+
+        makeMesh();
 	}
 
+    void draw() {
+		glBindVertexArray(this->VAO);
+		glDrawArrays(GL_TRIANGLES, 0, numVertices);
+        // glBindVertexArray(0);
+	}
 
-	void makeObject(Shader shader, bool texture = true) {
-		/* This is a working but not perfect solution, you can improve it if you need/want
-		* What happens if you call this function twice on an Model ?
-		* What happens when a shader doesn't have a position, tex_coord or normal attribute ?
-		*/
-
+private:
+	void makeMesh() {
 		float* data = new float[8 * numVertices];
 		for (int i = 0; i < numVertices; i++) {
 			Vertex v = vertices.at(i);
@@ -176,18 +170,19 @@ public:
 		auto att_pos = 0;
 		glEnableVertexAttribArray(att_pos);
 		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
+		// glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
 
-		if (texture) {
-			// auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
-			auto att_tex = 1;
-			glEnableVertexAttribArray(att_tex);
-			glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		}
+        // auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
+        auto att_tex = 1;
+        glEnableVertexAttribArray(att_tex);
+        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        // glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
 		
-		// auto att_col = glGetAttribLocation(shader.ID, "normal");
-		auto att_col = 2;
-		glEnableVertexAttribArray(att_col);
-		glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+		// auto att_norm = glGetAttribLocation(shader.ID, "normal");
+		auto att_norm = 2;
+		glEnableVertexAttribArray(att_norm);
+		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+		// glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 		
 		//desactive the buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -196,12 +191,6 @@ public:
 
 		// std::cout << "Made model with " << numVertices << " vertices" << std::endl;
 	}
-
-	void draw() {
-
-		glBindVertexArray(this->VAO);
-		glDrawArrays(GL_TRIANGLES, 0, numVertices);
-
-	}
 };
-#endif
+
+#endif /* MESH_H */

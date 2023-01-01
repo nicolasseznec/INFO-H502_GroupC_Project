@@ -14,22 +14,16 @@
 #include <map>
 
 #include "camera.h"
+#include "texture.h"
 #include "shader.h"
-#include "object.h"
+#include "mesh.h"
+#include "entity.h"
 #include "input.h"
 #include "debug.h"
 #include "skybox.h"
 
 const int width = 800;
 const int height = 800;
-
-InputHandler inputHandler = InputHandler(); 
-
-GLuint loadTexture(const char* file);
-
-// TODO : find a way to use the callbacks properly 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos); 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset); 
 
 int main(int argc, char* argv[])
 {
@@ -57,8 +51,22 @@ int main(int argc, char* argv[])
 
 	glfwMakeContextCurrent(window);
 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	InputHandler inputHandler = InputHandler();
+
+	// To access the input handler methods from the callbacks
+	glfwSetWindowUserPointer(window, &inputHandler);
+
+	// glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double x, double y) {
+		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
+        	inputHandler->mouse_callback(w,x,y);
+	});
+
+	// glfwSetScrollCallback(window, scroll_callback);
+	glfwSetScrollCallback(window, [](GLFWwindow* w, double x, double y) {
+		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
+        	inputHandler->scroll_callback(w,x,y);
+	});
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -86,14 +94,16 @@ int main(int argc, char* argv[])
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
 
-	GLuint texture = loadTexture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
-	GLuint textureBall = loadTexture(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
+	Texture texture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
+	Texture textureBall_14(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
+	Texture textureBall_5(PATH_TO_TEXTURE "/pool_balls/ball_05.jpg");
 
-	Object pool_table(PATH_TO_OBJECTS "/pool_table.obj");
-	pool_table.makeObject(simpleShader);
+	Mesh table_mesh(PATH_TO_OBJECTS "/pool_table.obj");
+	Mesh ball_mesh(PATH_TO_OBJECTS "/pool_ball.obj");
 
-	Object ball(PATH_TO_OBJECTS "/pool_ball.obj");
-	ball.makeObject(simpleShader);
+	Entity pool_table(table_mesh, texture);
+	Entity ball(ball_mesh, textureBall_14);
+	Entity ball2(ball_mesh, textureBall_5);
 
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
@@ -106,8 +116,7 @@ int main(int argc, char* argv[])
 		{ "negy.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
 		{ "negz.jpg", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
 	};
-
-	Skybox skybox(pathToCubeMap, facesToLoad , pathCube, cubeMapShader);
+	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
 
     Camera camera(glm::vec3(0.0, 0.0, 0.1));
@@ -118,9 +127,11 @@ int main(int argc, char* argv[])
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	
-	pool_table.model = glm::translate(pool_table.model, glm::vec3(0.0, -1.0, -2.0));
-	ball.model = glm::translate(ball.model, glm::vec3(0.0, 0.0, -2.0));
 	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
+	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
+	ball2.transform = glm::translate(ball2.transform, glm::vec3(-0.5, 0.0, -2.25));
+	ball2.transform = glm::rotate(ball2.transform, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
 
 	//Rendering
 	float ambient = 0.1;
@@ -189,25 +200,9 @@ int main(int argc, char* argv[])
 		simpleShader.setMatrix4("P", perspective);
 		simpleShader.setVector3f("u_view_pos", camera.Position);
 
-		// Table
-		simpleShader.setInteger("u_texture", 0);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0)
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		simpleShader.setMatrix4("M", pool_table.model);
-		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(pool_table.model)));
-		pool_table.draw();
-
-		// TODO : automate oject drawing (texture binding, uniforms setup, ...)
-		// TODO : All balls use the same model (no need to load it 16 times from the file) 
-		// Ball
-		simpleShader.setInteger("u_texture", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureBall);
-		
-		simpleShader.setMatrix4("M", ball.model);
-		simpleShader.setMatrix4("itM", glm::transpose(glm::inverse(ball.model)));
-		ball.draw();
+		pool_table.draw(simpleShader);
+		ball.draw(simpleShader);
+		ball2.draw(simpleShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -228,44 +223,4 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
 	return 0;
-}
-
-
-// TODO : Proper Texture loading
-GLuint loadTexture(const char* file) {
-	GLuint texture;
-	glGenTextures(1, &texture);
-	// glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-	int imWidth, imHeight, imNrChannels;
-	unsigned char* data = stbi_load(file, &imWidth, &imHeight, &imNrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "Failed to Load texture" << std::endl;
-		const char* reason = stbi_failure_reason();
-		std::cout << reason << std::endl;
-	}
-	stbi_set_flip_vertically_on_load(false);
-	stbi_image_free(data);
-
-	return texture;
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	inputHandler.mouse_callback(window, xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	inputHandler.scroll_callback(window, xoffset, yoffset);
 }

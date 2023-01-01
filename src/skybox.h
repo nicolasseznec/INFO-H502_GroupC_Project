@@ -7,20 +7,18 @@
 #include <glad/glad.h>
 
 #include "shader.h"
-#include "object.h"
-
+#include "mesh.h"
 
 class Skybox
 {
 public:
-    Object cubeMap;
+    Mesh cubeMap;
     GLuint cubeMapTexture;
 
     Skybox(
         std::string path, 
         std::map<std::string, GLenum> faces,
-        const char* cubePath,
-        Shader& shader
+        const char* cubePath
     ) : cubeMap(cubePath) {
         glGenTextures(1, &cubeMapTexture);
         bindTexture();
@@ -40,9 +38,9 @@ public:
         for (std::pair<std::string, GLenum> pair : faces) {
             loadCubemapFace((path + pair.first).c_str(), pair.second);
         }
-	    cubeMap.makeObject(shader);
     }
 
+    // TODO : try to use texture.h ?
     void loadCubemapFace(const char* path, const GLenum& targetFace)
     {
         int imWidth, imHeight, imNrChannels;
@@ -70,6 +68,7 @@ public:
 
     void draw() 
     {
+        // bindTexture()
 		cubeMap.draw();
     }
 
