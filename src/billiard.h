@@ -20,7 +20,7 @@
 
 
 
-const glm::vec3 TABLE_DIM = glm::vec3(2.0f, 1.0f, 1.0f); //TODO : measure
+const glm::vec3 TABLE_DIM = glm::vec3(1.92f, 0.986f, 0.96f); //TODO : measure
 const glm::vec3 COORD_RES = glm::vec3(200.0f, 1.0f, 100.0f);
 
 struct PoolRail {
@@ -44,7 +44,8 @@ public:
         std::string ballTexturePath
         ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
         
-        for (int i = 0; i < 16; i++) {
+        // for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 11; i++) {
             std::stringstream ss;
             ss << std::setw(2) << std::setfill('0') << i;
             Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
@@ -52,9 +53,9 @@ public:
         }
 
         table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
-        for (int i = 0; i < balls.size(); i++) {
+        for (int i = 0; i < 11; i++) {
             // balls.at(i).transform = glm::translate(balls.at(i).transform, glm::vec3(-0.75 + (i * 0.1), 0.0, -2.0));
-            balls.at(i).Position = glm::vec2(10.0f*i - 100.0f, 5.0f*i - 50.0f);
+            balls.at(i).Position = glm::vec2(20.0f*i - 100.0f, 10.0f*i - 50.0f);
         }
     }    
 
