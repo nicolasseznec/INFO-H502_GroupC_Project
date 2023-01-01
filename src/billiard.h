@@ -2,7 +2,10 @@
 #define BILLIARD_H
 
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <vector>
+
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,6 +18,10 @@
 #include "entity.h"
 #include "ball.h"
 
+
+
+const glm::vec3 TABLE_DIM = glm::vec3(2.0f, 1.0f, 1.0f); //TODO : measure
+const glm::vec3 COORD_RES = glm::vec3(200.0f, 1.0f, 100.0f);
 
 struct PoolRail {
 
@@ -34,23 +41,21 @@ public:
         const char* tableMeshPath,
         const char* tableTexturePath,
         const char* ballMeshPath,
-        const char* ballTexturePath,
-        std::vector<std::string> ballTextureNames
+        std::string ballTexturePath
         ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
         
-        table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
-
-        for (std::string name : ballTextureNames) {
-            Texture texture = Texture(name.c_str());
-            std::cout << "Loaded texture " << name << " to "<< texture.ID << std::endl;
+        for (int i = 0; i < 16; i++) {
+            std::stringstream ss;
+            ss << std::setw(2) << std::setfill('0') << i;
+            Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
             balls.push_back(PoolBall(ballMesh, texture));
         }
 
+        table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
         for (int i = 0; i < balls.size(); i++) {
-            balls.at(i).transform = glm::translate(balls.at(i).transform, glm::vec3(-0.5 + (i * 0.2), 0.0, -2.0));
+            // balls.at(i).transform = glm::translate(balls.at(i).transform, glm::vec3(-0.75 + (i * 0.1), 0.0, -2.0));
+            balls.at(i).Position = glm::vec2(10.0f*i - 100.0f, 5.0f*i - 50.0f);
         }
-
-        std::cout << "Loaded " << balls.size() << " balls " << std::endl;
     }    
 
     void update(double deltaTime) {
@@ -64,7 +69,9 @@ public:
                     balls.at(i).handleCollision(balls.at(j));
                 }
             }
+
         }
+        
     }
 
     // TODO : separate shaders for table and balls ?
@@ -72,6 +79,7 @@ public:
         table.draw(shader);
         
         for (PoolBall ball : balls) {
+            ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
             ball.draw(shader);
         }
     }

@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 #include "texture.h"
@@ -56,12 +57,12 @@ public:
     }
     */
 
-    void draw(Shader& shader) {
+    void computeTransform(glm::mat4 table_transform, glm::vec3 table_dim, glm::vec3 coord_res) {
         // TODO : Update the Mat4 transform with the new position/rotation
-        
-        Entity::draw(shader);
-    }
+        glm::mat4 relPos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.x, 1.0f, Position.y) * table_dim/coord_res);
 
+        this->transform = table_transform * relPos;
+    }
 };
 
 

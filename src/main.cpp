@@ -96,19 +96,12 @@ int main(int argc, char* argv[])
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
 
-	std::vector<std::string> ballTextures = {
-		PATH_TO_TEXTURE "/pool_balls/ball_14.jpg",
-		PATH_TO_TEXTURE "/pool_balls/ball_05.jpg",
-		PATH_TO_TEXTURE "/pool_balls/ball_03.jpg",
-	};
-
 	PoolGame poolGame(
 		PATH_TO_OBJECTS "/pool_table.obj",
 		PATH_TO_TEXTURE "/pool_table/colorMap.png",
 		PATH_TO_OBJECTS "/pool_ball.obj",
-		PATH_TO_TEXTURE "/pool_balls/",
-		ballTextures
-	);	
+		PATH_TO_TEXTURE "/pool_balls/"
+	);
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
