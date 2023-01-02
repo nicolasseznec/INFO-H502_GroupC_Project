@@ -23,8 +23,9 @@
 const glm::vec3 TABLE_DIM = glm::vec3(1.92f, 0.986f, 0.96f);
 const glm::vec3 COORD_RES = glm::vec3(200.0f, 1.0f, 100.0f);
 
-struct PoolRail {
-
+struct PoolPocket {
+    // position
+    // radius
 };
 
 class PoolGame 
@@ -67,7 +68,7 @@ public:
         timer += deltaTime;
         if (timer > 5.0f) {
             timer = 0.0f;
-            balls.at(2).impulse(100.0f, 90.0f);
+            balls.at(2).impulse(200.0f, 135.0f);
             // std::cout << "shot : " << balls.at(2).Velocity.x << "," << balls.at(2).Velocity.y  << std::endl;
         }
 
@@ -75,14 +76,21 @@ public:
             ball.update(deltaTime);
         }
 
+        
         for (int i = 0; i < balls.size(); i++) {
+            PoolBall& ball = balls.at(i);
+
             for (int j = i+1; j < balls.size(); j++) {
-                if (balls.at(i).checkCollision(balls.at(j))) {
-                    balls.at(i).handleCollision(balls.at(j));
+                if (ball.checkCollision(balls.at(j))) {
+                    ball.handleCollision(balls.at(j));
                 }
             }
+
+            ball.checkBounds(COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
+            ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
-        std::cout << balls.at(2).Position.y << " | " << balls.at(2).Acceleration.y << std::endl;
+        
+        // std::cout << balls.at(2).Position.x <<  ", " << balls.at(2).Position.y << " | " << balls.at(2).Velocity.x << ", "  << balls.at(2).Velocity.y  << std::endl;
     }
 
     // TODO : separate shaders for table and balls ?
@@ -90,7 +98,7 @@ public:
         table.draw(shader);
         
         for (PoolBall& ball : balls) {
-            ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
+            // ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
             ball.draw(shader);
         }
     }

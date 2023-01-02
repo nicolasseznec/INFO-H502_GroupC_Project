@@ -15,7 +15,7 @@
 
 
 const float MASS = 1.0f;
-const float RADIUS = 1.0f;
+const float RADIUS = 2.7f;
 const float FRICTION = 1.0f;
 const float STOP_TH = 0.5f;
 
@@ -45,21 +45,33 @@ public:
         return false;
     }
 
-    /*
-    bool checkCollision(Wall wall) {
-        // TODO : returns true if colliding with wall
-    }
-    */
-
     void handleCollision(PoolBall other) {
         // Separate balls and recompute velocity
     }
 
-    /*
-    void handleCollision(Wall wall) {
-        // Move ball and recompute velocity
+    void checkBounds(float maxX, float maxY) {
+        if (Position.x + Radius > maxX) {
+            // EAST RAIL
+            Position.x = maxX - Radius;
+            if (Velocity.x > 0.0f) Velocity.x *= -1.0f;
+        }
+        else if (Position.x - Radius < -maxX) {
+            // WEST RAIL
+            Position.x = Radius - maxX;
+            if (Velocity.x < 0.0f) Velocity.x *= -1.0f;
+        }
+
+        if (Position.y + Radius > maxY) {
+            // NORTH RAIL
+            Position.y = maxY - Radius;
+            if (Velocity.y > 0.0f) Velocity.y *= -1.0f;
+        }
+        else if (Position.y - Radius < -maxY) {
+            // SOUTH RAIL
+            Position.y = Radius - maxY;
+            if (Velocity.y < 0.0f) Velocity.y *= -1.0f;
+        }
     }
-    */
 
     void computeTransform(glm::mat4 table_transform, glm::vec3 table_dim, glm::vec3 coord_res) {
         // TODO : Update the Mat4 transform with the new position/rotation
@@ -75,8 +87,8 @@ public:
 
 private:
     void checkStopThreshold() {
-        if (Velocity.x < STOP_TH) Velocity.x = 0.0f;
-        if (Velocity.y < STOP_TH) Velocity.y = 0.0f;
+        if (glm::abs(Velocity.x) < STOP_TH) Velocity.x = 0.0f;
+        if (glm::abs(Velocity.y) < STOP_TH) Velocity.y = 0.0f;
     }
 };
 
