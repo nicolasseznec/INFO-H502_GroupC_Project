@@ -115,7 +115,7 @@ public:
         relativeDir = glm::vec3(deltaPos.y, 0.0f, deltaPos.x) * res;
         if (glm::length(deltaPos) == 0.0f) relativeDir = glm::vec3(0.0f, 0.0f, 1.0f);
 
-        // There is far from efficient but it seems to work
+        // This is far from efficient but it seems to work
         // Rotate the ball
         glm::mat4 newRotation = glm::rotate(glm::mat4(1.0f), angleRad, glm::cross(relativeDir, glm::vec3(0.0f, -1.0f, 0.0f)));
         Rotation = newRotation * Rotation;

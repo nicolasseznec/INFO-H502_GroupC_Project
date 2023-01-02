@@ -54,18 +54,16 @@ public:
         std::string ballTexturePath
         ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
         
-        // for (int i = 0; i < 16; i++) {
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 16; i++) {
             std::stringstream ss;
             ss << std::setw(2) << std::setfill('0') << i;
             Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
             balls.push_back(PoolBall(ballMesh, texture));
+            balls.at(i).Rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
         table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
-        for (int i = 0; i < 9; i++) {
-            balls.at(i).Position = glm::vec2(10.0f*i - 40.0f, 20.0f*i - 80.0f);
-        }
+        setupBalls();
     }
 
     void update(double deltaTime) {
@@ -73,7 +71,7 @@ public:
         if (timer > 5.0f) {
             timer = 0.0f;
 
-            balls.at(2).impulse(200.0f, std::rand() % 360);
+            balls.at(0).impulse(200.0f, std::rand() % 360);
             // balls.at(2).impulse(100.0f, 135.0f);
         }
 
@@ -102,6 +100,40 @@ public:
         
         for (PoolBall& ball : balls) {
             ball.draw(shader);
+        }
+    }
+
+private: 
+    void setupBalls() {
+        if (balls.size() != 16) return;
+
+        // Place balls in triangle
+        const float maxX = COORD_RES.x * 0.5f;
+        const float r = RADIUS + 0.1f;
+        const float h = glm::sqrt(3) * r;
+        int indexes[15]  = {9, 7, 12, 15, 8, 1, 6, 10, 3, 14, 11, 2, 13, 4, 5};
+        int length = 1;
+        int number = 1;
+        
+        balls[0].Position = glm::vec2(0.0f, maxX * 0.5f); 
+        glm::vec2 current = glm::vec2(0.0f, -maxX * 0.5f);
+
+        for (int i=0; i<15; i++) {
+            int index = indexes[i];
+
+            if (number < length) {
+                balls[index].Position = current;
+                current.x = current.x + r*2;
+                number++;
+            }
+            else {
+                balls[index].Position = current;
+                current.y = current.y - h;
+                current.x = current.x - r*(2*length-1);
+
+                length++;
+                number = 1;
+            }
         }
     }
 };
