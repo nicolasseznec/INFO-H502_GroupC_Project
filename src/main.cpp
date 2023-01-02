@@ -199,6 +199,7 @@ int main(int argc, char* argv[])
 		simpleShader.setMatrix4("P", perspective);
 		simpleShader.setVector3f("u_view_pos", camera.Position);
 
+		poolGame.update(deltaTime);
 		poolGame.draw(simpleShader);
 
 		// Sky
