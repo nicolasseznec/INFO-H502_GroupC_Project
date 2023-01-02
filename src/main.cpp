@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 			prev = now;
 			const double fpsCount = (double)frames / delta;
 			frames = 0;
-			std::cout << "\r FPS: " << fpsCount;
+			// std::cout << "\r FPS: " << fpsCount;
 			std::cout.flush();
 		}
 	};

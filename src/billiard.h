@@ -13,6 +13,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// TEST
+#include <cstdlib>
+
+
 #include "texture.h"
 #include "mesh.h"
 #include "entity.h"
@@ -51,7 +55,7 @@ public:
         ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
         
         // for (int i = 0; i < 16; i++) {
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 9; i++) {
             std::stringstream ss;
             ss << std::setw(2) << std::setfill('0') << i;
             Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
@@ -59,17 +63,18 @@ public:
         }
 
         table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
-        for (int i = 0; i < 11; i++) {
-            balls.at(i).Position = glm::vec2(10.0f*i - 50.0f, 20.0f*i - 100.0f);
+        for (int i = 0; i < 9; i++) {
+            balls.at(i).Position = glm::vec2(10.0f*i - 40.0f, 20.0f*i - 80.0f);
         }
-    }    
+    }
 
     void update(double deltaTime) {
         timer += deltaTime;
         if (timer > 5.0f) {
             timer = 0.0f;
-            balls.at(2).impulse(200.0f, 135.0f);
-            // std::cout << "shot : " << balls.at(2).Velocity.x << "," << balls.at(2).Velocity.y  << std::endl;
+
+            balls.at(2).impulse(200.0f, std::rand() % 360);
+            // balls.at(2).impulse(100.0f, 135.0f);
         }
 
         for (PoolBall& ball : balls) {
@@ -89,8 +94,6 @@ public:
             ball.checkBounds(COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
-        
-        // std::cout << balls.at(2).Position.x <<  ", " << balls.at(2).Position.y << " | " << balls.at(2).Velocity.x << ", "  << balls.at(2).Velocity.y  << std::endl;
     }
 
     // TODO : separate shaders for table and balls ?
@@ -98,7 +101,6 @@ public:
         table.draw(shader);
         
         for (PoolBall& ball : balls) {
-            // ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
             ball.draw(shader);
         }
     }
