@@ -25,7 +25,7 @@
 
 
 const glm::vec3 TABLE_DIM = glm::vec3(1.92f, 0.986f, 0.96f);
-const glm::vec3 COORD_RES = glm::vec3(200.0f, 1.0f, 100.0f);
+const glm::vec3 COORD_RES = glm::vec3(200.0f, 100.0f, 100.0f);
 
 class PoolGame 
 {
@@ -63,6 +63,8 @@ public:
     }
 
     void update(double deltaTime) {
+        // std::cout << balls.at(2).Position.z << std::endl;
+
         timer += deltaTime;
         if (timer > 5.0f) {
             timer = 0.0f;
@@ -112,9 +114,9 @@ private:
         int length = 1;
         int number = 1;
         
-        balls[0].Position = glm::vec2(0.0f, maxX * 0.5f); 
-        glm::vec2 current = glm::vec2(0.0f, -maxX * 0.5f);
-
+        balls[0].Position = glm::vec3(0.0f, maxX * 0.5f, 0.0f); 
+        glm::vec3 current = glm::vec3(0.0f, -maxX * 0.5f, 0.0f);
+        
         for (int i=0; i<15; i++) {
             int index = indexes[i];
 
@@ -135,15 +137,15 @@ private:
     }
 
     void setupPockets() {
-        balls.at(0).Position = glm::vec2(0.0f);
+        balls.at(0).Position = glm::vec3(0.0f);
 
         PoolPocket test;
-        test.Direction = glm::rotate(glm::vec2(1.0f, 0.0f), glm::radians(-45.0f));
+        test.setDirection(45.0f);
         test.Radius = 4.8f;
         // test.Position = glm::vec2(-56.0f, 0.0f);
-        test.Position = glm::vec2(-52.0f, 102.0f);
+        test.Position = glm::vec3(-52.0f, 102.0f, 0.0f);
         test.minDist = 10.0f;
-
+        test.depth = 8.0f;
 
         pockets.push_back(test);
     }

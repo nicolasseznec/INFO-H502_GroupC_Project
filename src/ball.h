@@ -23,20 +23,24 @@ const float RESTITUTION = 0.9f;
 const float STOP_TH = 0.5f;
 
 struct PoolPocket {
-    glm::vec2 Position = glm::vec2(0.0f);
+    glm::vec3 Position = glm::vec3(0.0f);
     float Radius;
     float depth;
-    glm::vec2 Direction = glm::vec2(1.0f, 0.0f);
+    glm::vec3 Direction = glm::vec3(1.0f, 0.0f, 0.0f);
     float minDist;
+
+    void setDirection(float angle) {
+        Direction = glm::rotate(glm::vec3(1.0f, 0.0f, 0.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+    }
 };
 
 class PoolBall : public Entity
 {
 public: 
-    glm::vec2 Position = glm::vec2(0.0f);
-    glm::vec2 PreviousPos = glm::vec2(0.0f);
-    glm::vec2 Velocity = glm::vec2(0.0f);
-    glm::vec2 Acceleration = glm::vec2(0.0f);
+    glm::vec3 Position = glm::vec3(0.0f);
+    glm::vec3 PreviousPos = glm::vec3(0.0f);
+    glm::vec3 Velocity = glm::vec3(0.0f);
+    glm::vec3 Acceleration = glm::vec3(0.0f);
 
     float Radius;
     float Mass;
@@ -57,6 +61,12 @@ public:
         checkStopThreshold();
         // Acceleration =  Velocity * -FRICTION/Mass;  // friction
         Position += Velocity * deltaTime;
+
+        if (!enteredPocket) {
+            Position.z = 0.0f;
+            Velocity.z = 0.0f;
+            Acceleration.z = 0.0f;
+        }
     }
 
     bool checkCollision(PoolBall& other) {
@@ -67,9 +77,9 @@ public:
     }
 
     void handleCollision(PoolBall& other) {
-        glm::vec2 deltaPos = Position - other.Position;
-        glm::vec2 deltaPosN = glm::normalize(deltaPos);
-        glm::vec2 deltaVel = Velocity - other.Velocity;
+        glm::vec3 deltaPos = Position - other.Position;
+        glm::vec3 deltaPosN = glm::normalize(deltaPos);
+        glm::vec3 deltaVel = Velocity - other.Velocity;
 
         float invM1 = 1/Mass;
         float invM2 = 1/other.Mass;
@@ -77,14 +87,14 @@ public:
 
         // Correct Overlapping
         float dist = glm::length(deltaPos);
-        glm::vec2 correction = deltaPosN * (Radius + other.Radius - dist);
+        glm::vec3 correction = deltaPosN * (Radius + other.Radius - dist);
         Position += correction * invM1/sumInvM;
         other.Position -= correction * invM2/sumInvM;
 
         // Compute impulse
         float vn = glm::dot(deltaVel, deltaPosN);
         if (vn > 0.0f) return;
-        glm::vec2 impulse = deltaPosN * -(1.0f + RESTITUTION) * vn/sumInvM;
+        glm::vec3 impulse = deltaPosN * -(1.0f + RESTITUTION) * vn/sumInvM;
 
         // Update velocities
         Velocity += impulse * invM1;
@@ -96,6 +106,8 @@ public:
             updateInPocket();
             return;
         }
+
+        if (insideBounds(maxX, maxY)) return;
 
         bool inPocket = false;
         for (PoolPocket pocket : pockets) {
@@ -109,7 +121,7 @@ public:
     }
 
     bool checkPocket(PoolPocket pocket) {
-        glm::vec2 deltaPos = Position - pocket.Position;
+        glm::vec2 deltaPos(Position - pocket.Position);
         float distance2 = glm::length2(deltaPos);
 
         float minRadius = pocket.Radius - Radius;
@@ -123,20 +135,24 @@ public:
         }
         else if (distance2 <= pocket.minDist * pocket.minDist) {
             // Ball is in the mouth of the pocket
-            glm::vec2 projPos = pocket.Position + pocket.Direction * glm::dot(Position - pocket.Position, pocket.Direction)/glm::length2(pocket.Direction);
-            glm::vec2 delta = Position - projPos;
+            glm::vec3 projPos = pocket.Position + pocket.Direction * glm::dot(Position - pocket.Position, pocket.Direction)/glm::length2(pocket.Direction);
+            glm::vec2 delta(Position - projPos);
+            
+            glm::vec2 normal = glm::normalize(-delta);
+            glm::vec2 flatVelocity(Velocity);
+            
 
-            if (glm::length2(delta) > minRadius2) {
+            if (glm::length2(delta) > minRadius2 && glm::dot(normal, flatVelocity) < 0.0f) {
                 // ball is colliding with borders of the mouth
-                float distance = glm::length(delta);
-                glm::vec2 normal = glm::normalize(-delta);
-
+            
                 // Correct position
-                Position = projPos + delta * (minRadius/distance);
+                float distance = glm::length(delta);
+                Position = projPos + glm::vec3(delta, Position.z) * (minRadius/distance);
 
                 // Bouncing
-                if (glm::dot(normal, Velocity) < 0.0f) {
-                    Velocity = glm::reflect(Velocity, normal);
+                
+                if (glm::dot(normal, flatVelocity) < 0.0f) {
+                    Velocity = glm::vec3(glm::reflect(flatVelocity, normal), Velocity.z);
                 }
             }
             return true;
@@ -145,8 +161,12 @@ public:
         return false;
     }
 
+    bool insideBounds(float maxX, float maxY) {
+        return (glm::abs(Position.x) <= maxX-Radius) && (glm::abs(Position.y) <= maxY-Radius);
+    }
+
     void updateInPocket() {
-        glm::vec2 deltaPos = Position - Pocket.Position;
+        glm::vec2 deltaPos(Position - Pocket.Position);
         float distance2 = glm::length2(deltaPos);
 
         float minRadius = Pocket.Radius - Radius;
@@ -157,16 +177,21 @@ public:
             float distance = glm::length(deltaPos);
             
             // Correct position
-            Position = Pocket.Position + deltaPos * (minRadius/distance);
-
+            Position = Pocket.Position + glm::vec3(deltaPos, Position.z) * (minRadius/distance);
             // Bouncing
             glm::vec2 normal = glm::normalize(-deltaPos);
-            if (glm::dot(normal, Velocity) < 0.0f) {
-                Velocity = glm::reflect(Velocity, normal) * RESTITUTION;
+            
+            glm::vec2 flatVelocity(Velocity);
+            if (glm::dot(normal, flatVelocity) < 0.0f) {
+                Velocity = glm::vec3(glm::reflect(flatVelocity, normal), Velocity.z);
             }
         }
-
-        // TODO : falling in the hole
+        // falling in the hole
+        Acceleration.z = -200.0f;
+        if (Position.z < -Pocket.depth) {
+            Position.z = -Pocket.depth;
+            if (Velocity.z < 0.0f) Velocity.z *= -1 * 0.8f;
+        }
     }
 
     void checkBounds(float maxX, float maxY) {
@@ -180,7 +205,7 @@ public:
             Position.x = Radius - maxX;
             if (Velocity.x < 0.0f) Velocity.x *= -1.0f;
         }
-
+        
         if (Position.y + Radius > maxY) {
             // NORTH RAIL
             Position.y = maxY - Radius;
@@ -212,7 +237,8 @@ public:
         Rotation = newRotation * Rotation;
 
         // Place at the right position
-        glm::mat4 relativePos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.y, 1.0f, Position.x) * res);
+        // glm::mat4 relativePos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.y, 1.0f, Position.x) * res);
+        glm::mat4 relativePos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.y, Position.z + coord_res.y, Position.x) * res);
 
         this->transform = table_transform * relativePos * Rotation;
         PreviousPos = Position;
@@ -220,7 +246,7 @@ public:
 
     void impulse(float magnitude, float angle) {
         glm::vec2 force = glm::rotate(glm::vec2(1.0f, 0.0f), glm::radians(angle)) * magnitude;
-        Velocity += force;
+        Velocity += glm::vec3(force, 0.0f);
     }
 
 private:
