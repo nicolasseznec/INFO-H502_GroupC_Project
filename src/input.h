@@ -97,6 +97,9 @@ public:
 
 		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
 			poolGame->resetCueBall();
+
+		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+			poolGame->resetGame();
 	}
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)

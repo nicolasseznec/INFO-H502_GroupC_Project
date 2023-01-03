@@ -54,12 +54,11 @@ public:
             ss << std::setw(2) << std::setfill('0') << i;
             Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
             balls.push_back(PoolBall(ballMesh, texture));
-            balls.at(i).Rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
         table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
-        setupBalls();
         setupPockets();
+        resetGame();
     }
 
     void update(double deltaTime) {
@@ -95,6 +94,11 @@ public:
         balls.at(0).reset(0.0f, COORD_RES.x * 0.25f);
     }
 
+    void resetGame() {
+        setupBalls();
+        // ...
+    }
+
     // TODO : separate shaders for table and balls ?
     void draw(Shader& shader) {
         table.draw(shader);
@@ -123,18 +127,20 @@ private:
             int index = indexes[i];
 
             if (number < length) {
-                balls[index].Position = current;
+                balls[index].reset(current.x, current.y);
                 current.x = current.x + r*2;
                 number++;
             }
             else {
-                balls[index].Position = current;
+                balls[index].reset(current.x, current.y);
                 current.y = current.y - h;
                 current.x = current.x - r*(2*length-1);
 
                 length++;
                 number = 1;
             }
+            
+            balls[index].Rotation = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
     }
 
