@@ -1,6 +1,8 @@
 #ifndef BALL_H
 #define BALL_H
 
+#include <vector>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -20,6 +22,14 @@ const float FRICTION = 1.0f;
 const float RESTITUTION = 0.9f;
 const float STOP_TH = 0.5f;
 
+struct PoolPocket {
+    glm::vec2 Position = glm::vec2(0.0f);
+    float Radius;
+    float depth;
+    glm::vec2 Direction = glm::vec2(1.0f, 0.0f);
+    float minDist;
+};
+
 class PoolBall : public Entity
 {
 public: 
@@ -31,7 +41,8 @@ public:
     float Radius;
     float Mass;
 
-    int sens = 1;
+    bool enteredPocket = false;
+    PoolPocket Pocket;
 
     bool firstCompute = true;
     glm::mat4 Rotation = glm::mat4(1.0f);
@@ -44,11 +55,13 @@ public:
     void update(float deltaTime) {
         Velocity += Acceleration * deltaTime; // delta time squared ?
         checkStopThreshold();
-        Acceleration =  Velocity * -FRICTION/Mass;  // friction
+        // Acceleration =  Velocity * -FRICTION/Mass;  // friction
         Position += Velocity * deltaTime;
     }
 
     bool checkCollision(PoolBall& other) {
+        if (enteredPocket || other.enteredPocket) return false;
+
         float minDist = (Radius + other.Radius);
         return glm::length2(Position - other.Position) <= (minDist * minDist);
     }
@@ -76,6 +89,84 @@ public:
         // Update velocities
         Velocity += impulse * invM1;
         other.Velocity -= impulse * invM2;
+    }
+
+    void checkTable(std::vector<PoolPocket>& pockets, float maxX, float maxY) {
+        if (enteredPocket) {
+            updateInPocket();
+            return;
+        }
+
+        bool inPocket = false;
+        for (PoolPocket pocket : pockets) {
+            if (checkPocket(pocket)) {
+                inPocket = true;
+                break;
+            }
+        }
+
+        if (!inPocket) checkBounds(maxX, maxY);
+    }
+
+    bool checkPocket(PoolPocket pocket) {
+        glm::vec2 deltaPos = Position - pocket.Position;
+        float distance2 = glm::length2(deltaPos);
+
+        float minRadius = pocket.Radius - Radius;
+        float minRadius2 = minRadius*minRadius;
+
+        if (distance2 <= minRadius2) {
+            // Ball is inside the hole (throat)
+            enteredPocket = true;
+            this->Pocket = pocket;
+            return true;
+        }
+        else if (distance2 <= pocket.minDist * pocket.minDist) {
+            // Ball is in the mouth of the pocket
+            glm::vec2 projPos = pocket.Position + pocket.Direction * glm::dot(Position - pocket.Position, pocket.Direction)/glm::length2(pocket.Direction);
+            glm::vec2 delta = Position - projPos;
+
+            if (glm::length2(delta) > minRadius2) {
+                // ball is colliding with borders of the mouth
+                float distance = glm::length(delta);
+                glm::vec2 normal = glm::normalize(-delta);
+
+                // Correct position
+                Position = projPos + delta * (minRadius/distance);
+
+                // Bouncing
+                if (glm::dot(normal, Velocity) < 0.0f) {
+                    Velocity = glm::reflect(Velocity, normal);
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    void updateInPocket() {
+        glm::vec2 deltaPos = Position - Pocket.Position;
+        float distance2 = glm::length2(deltaPos);
+
+        float minRadius = Pocket.Radius - Radius;
+
+        if(distance2 > minRadius*minRadius) {
+            // Ball is colliding with the borders of the hole
+
+            float distance = glm::length(deltaPos);
+            
+            // Correct position
+            Position = Pocket.Position + deltaPos * (minRadius/distance);
+
+            // Bouncing
+            glm::vec2 normal = glm::normalize(-deltaPos);
+            if (glm::dot(normal, Velocity) < 0.0f) {
+                Velocity = glm::reflect(Velocity, normal) * RESTITUTION;
+            }
+        }
+
+        // TODO : falling in the hole
     }
 
     void checkBounds(float maxX, float maxY) {

@@ -27,11 +27,6 @@
 const glm::vec3 TABLE_DIM = glm::vec3(1.92f, 0.986f, 0.96f);
 const glm::vec3 COORD_RES = glm::vec3(200.0f, 1.0f, 100.0f);
 
-struct PoolPocket {
-    // position
-    // radius
-};
-
 class PoolGame 
 {
 public:
@@ -40,7 +35,7 @@ public:
 
     Entity table;
     std::vector<PoolBall> balls;
-
+    std::vector<PoolPocket> pockets;
 
     // Test variables
     float timer = 0.0f;
@@ -64,6 +59,7 @@ public:
 
         table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
         setupBalls();
+        setupPockets();
     }
 
     void update(double deltaTime) {
@@ -72,7 +68,7 @@ public:
             timer = 0.0f;
 
             balls.at(0).impulse(200.0f, std::rand() % 360);
-            // balls.at(2).impulse(100.0f, 135.0f);
+            // balls.at(0).impulse(100.0f, 185.0f);
         }
 
         for (PoolBall& ball : balls) {
@@ -89,7 +85,8 @@ public:
                 }
             }
 
-            ball.checkBounds(COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
+            // ball.checkBounds(COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
+            ball.checkTable(pockets, COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
     }
@@ -135,6 +132,20 @@ private:
                 number = 1;
             }
         }
+    }
+
+    void setupPockets() {
+        balls.at(0).Position = glm::vec2(0.0f);
+
+        PoolPocket test;
+        test.Direction = glm::rotate(glm::vec2(1.0f, 0.0f), glm::radians(-45.0f));
+        test.Radius = 4.8f;
+        // test.Position = glm::vec2(-56.0f, 0.0f);
+        test.Position = glm::vec2(-52.0f, 102.0f);
+        test.minDist = 10.0f;
+
+
+        pockets.push_back(test);
     }
 };
 
