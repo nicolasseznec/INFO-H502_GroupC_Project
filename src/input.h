@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
+#include "billiard.h"
 
 
 class InputHandler
@@ -25,6 +26,7 @@ public:
 	double lastMouseY = 0;
 
 	Camera* camera;
+	PoolGame* poolGame;
 
 	void processInput(GLFWwindow* window, double deltaTime) {
 		// Window
@@ -42,6 +44,11 @@ public:
 			cursorKeyPressed = false;
 		}
 		
+		processCameraInput(window, deltaTime);
+		processPoolInput(window, deltaTime);
+	}
+
+	void processCameraInput(GLFWwindow* window, double deltaTime) {
 		// Camera Position
 		if (!camera) return;
 
@@ -71,7 +78,6 @@ public:
 		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 			camera->ProcessKeyboardRotation(0.0, -1.0, deltaTime);
 
-
 		// Camera Parameters
 		// Press R to reset properties (Speed, Mouse sensitivity, Zoom)
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
@@ -84,6 +90,13 @@ public:
 			scroll = SPEED;
 		else
 			scroll = ZOOM;
+	}
+
+	void processPoolInput(GLFWwindow* window, double deltaTime) {
+		if (!poolGame) return;
+
+		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+			poolGame->resetCueBall();
 	}
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)

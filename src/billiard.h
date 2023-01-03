@@ -63,14 +63,12 @@ public:
     }
 
     void update(double deltaTime) {
-        // std::cout << balls.at(2).Position.z << std::endl;
-
         timer += deltaTime;
         if (timer > 5.0f) {
             timer = 0.0f;
 
-            balls.at(0).impulse(200.0f, std::rand() % 360);
-            // balls.at(0).impulse(100.0f, 185.0f);
+            balls.at(0).impulse(300.0f, std::rand() % 360);
+            // balls.at(0).impulse(200.0f, -80.0f);
         }
 
         for (PoolBall& ball : balls) {
@@ -91,6 +89,10 @@ public:
             ball.checkTable(pockets, COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
+    }
+
+    void resetCueBall() {
+        balls.at(0).reset(0.0f, COORD_RES.x * 0.25f);
     }
 
     // TODO : separate shaders for table and balls ?
@@ -114,7 +116,7 @@ private:
         int length = 1;
         int number = 1;
         
-        balls[0].Position = glm::vec3(0.0f, maxX * 0.5f, 0.0f); 
+        resetCueBall();
         glm::vec3 current = glm::vec3(0.0f, -maxX * 0.5f, 0.0f);
         
         for (int i=0; i<15; i++) {
@@ -137,17 +139,12 @@ private:
     }
 
     void setupPockets() {
-        balls.at(0).Position = glm::vec3(0.0f);
-
-        PoolPocket test;
-        test.setDirection(45.0f);
-        test.Radius = 4.8f;
-        // test.Position = glm::vec2(-56.0f, 0.0f);
-        test.Position = glm::vec3(-52.0f, 102.0f, 0.0f);
-        test.minDist = 10.0f;
-        test.depth = 8.0f;
-
-        pockets.push_back(test);
+        pockets.push_back(PoolPocket(-POCKET_X, 0.0f, 0.0f));
+        pockets.push_back(PoolPocket(-POCKET_X2, -POCKET_Y, 45.0f));
+        pockets.push_back(PoolPocket(POCKET_X2, -POCKET_Y, 135.0f));
+        pockets.push_back(PoolPocket(POCKET_X, 0.0f, 180.0f));
+        pockets.push_back(PoolPocket(POCKET_X2, POCKET_Y, -135.0f));
+        pockets.push_back(PoolPocket(-POCKET_X2, POCKET_Y, -45.0f));
     }
 };
 

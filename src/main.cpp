@@ -102,6 +102,7 @@ int main(int argc, char* argv[])
 		PATH_TO_OBJECTS "/pool_ball.obj",
 		PATH_TO_TEXTURE "/pool_balls/"
 	);
+	inputHandler.poolGame = &poolGame;
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";

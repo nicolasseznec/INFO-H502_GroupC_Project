@@ -22,12 +22,30 @@ const float FRICTION = 1.0f;
 const float RESTITUTION = 0.9f;
 const float STOP_TH = 0.5f;
 
+
+const float POCKET_RADIUS = 4.8f;
+const float POCKET_DEPTH = 8.0f;
+const float POCKET_MINDIST = 10.0f;
+const float POCKET_X = 56.0f;
+const float POCKET_X2 = 52.0f;
+const float POCKET_Y = 102.0f;
+
+
 struct PoolPocket {
-    glm::vec3 Position = glm::vec3(0.0f);
+    glm::vec3 Position;
     float Radius;
     float depth;
-    glm::vec3 Direction = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 Direction;
     float minDist;
+
+    PoolPocket() {}
+
+    PoolPocket(float x, float y, float angle, float Radius = POCKET_RADIUS, float depth = POCKET_DEPTH, float minDist = POCKET_MINDIST) 
+    : minDist(minDist), Radius(Radius), depth(depth) 
+    {
+        Position = glm::vec3(x, y, 0.0f);
+        setDirection(angle);
+    }
 
     void setDirection(float angle) {
         Direction = glm::rotate(glm::vec3(1.0f, 0.0f, 0.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -57,9 +75,9 @@ public:
     }
 
     void update(float deltaTime) {
-        Velocity += Acceleration * deltaTime; // delta time squared ?
+        Velocity += Acceleration * deltaTime;
         checkStopThreshold();
-        // Acceleration =  Velocity * -FRICTION/Mass;  // friction
+        Acceleration =  Velocity * -FRICTION/Mass;  // friction
         Position += Velocity * deltaTime;
 
         if (!enteredPocket) {
@@ -183,7 +201,7 @@ public:
             
             glm::vec2 flatVelocity(Velocity);
             if (glm::dot(normal, flatVelocity) < 0.0f) {
-                Velocity = glm::vec3(glm::reflect(flatVelocity, normal), Velocity.z);
+                Velocity = glm::vec3(glm::reflect(flatVelocity, normal) * 0.7f, Velocity.z);
             }
         }
         // falling in the hole
@@ -247,6 +265,14 @@ public:
     void impulse(float magnitude, float angle) {
         glm::vec2 force = glm::rotate(glm::vec2(1.0f, 0.0f), glm::radians(angle)) * magnitude;
         Velocity += glm::vec3(force, 0.0f);
+    }
+
+    void reset(float x = 0.0f, float y = 0.0f) {
+        Position = glm::vec3(x, y, 0.0f); 
+        Velocity = glm::vec3(0.0f);
+        Acceleration = glm::vec3(0.0f);
+        enteredPocket = false;
+        Rotation = glm::mat4(1.0f);
     }
 
 private:
