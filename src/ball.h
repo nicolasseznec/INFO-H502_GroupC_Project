@@ -25,7 +25,7 @@ const float STOP_TH = 0.5f;
 
 const float POCKET_RADIUS = 4.8f;
 const float POCKET_DEPTH = 8.0f;
-const float POCKET_MINDIST = 10.0f;
+const float POCKET_MINDIST = 30.0f;
 const float POCKET_X = 56.0f;
 const float POCKET_X2 = 52.0f;
 const float POCKET_Y = 102.0f;
@@ -48,7 +48,7 @@ struct PoolPocket {
     }
 
     void setDirection(float angle) {
-        Direction = glm::rotate(glm::vec3(1.0f, 0.0f, 0.0f), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        Direction = glm::rotate(glm::vec3(1.0f, 0.0f, 0.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
     }
 };
 
@@ -77,7 +77,7 @@ public:
     void update(float deltaTime) {
         Velocity += Acceleration * deltaTime;
         checkStopThreshold();
-        Acceleration =  Velocity * -FRICTION/Mass;  // friction
+        // Acceleration =  Velocity * -FRICTION/Mass;
         Position += Velocity * deltaTime;
 
         if (!enteredPocket) {
@@ -142,6 +142,11 @@ public:
         glm::vec2 deltaPos(Position - pocket.Position);
         float distance2 = glm::length2(deltaPos);
 
+        if (distance2 > pocket.minDist * pocket.minDist) {
+            // Not close enough to the pocket
+            return false;
+        }
+
         float minRadius = pocket.Radius - Radius;
         float minRadius2 = minRadius*minRadius;
 
@@ -151,32 +156,45 @@ public:
             this->Pocket = pocket;
             return true;
         }
-        else if (distance2 <= pocket.minDist * pocket.minDist) {
-            // Ball is in the mouth of the pocket
-            glm::vec3 projPos = pocket.Position + pocket.Direction * glm::dot(Position - pocket.Position, pocket.Direction)/glm::length2(pocket.Direction);
-            glm::vec2 delta(Position - projPos);
-            
-            glm::vec2 normal = glm::normalize(-delta);
-            glm::vec2 flatVelocity(Velocity);
-            
 
-            if (glm::length2(delta) > minRadius2 && glm::dot(normal, flatVelocity) < 0.0f) {
-                // ball is colliding with borders of the mouth
-            
-                // Correct position
-                float distance = glm::length(delta);
-                Position = projPos + glm::vec3(delta, Position.z) * (minRadius/distance);
+        float dotProd = glm::dot(Position - pocket.Position, pocket.Direction);
 
-                // Bouncing
-                
-                if (glm::dot(normal, flatVelocity) < 0.0f) {
-                    Velocity = glm::vec3(glm::reflect(flatVelocity, normal), Velocity.z);
-                }
-            }
+        if (dotProd < 0.0f) {
+            // Somehow behind the pocket (probably going too fast)
+            enteredPocket = true;
+            this->Pocket = pocket;
             return true;
         }
 
-        return false;
+        glm::vec3 projPos = pocket.Position + pocket.Direction * dotProd/glm::length2(pocket.Direction);
+        glm::vec2 delta(Position - projPos);
+        distance2 = glm::length2(delta);
+
+        if (distance2 > pocket.Radius * pocket.Radius) {
+            // Not in pocket
+            return false;
+        }
+
+        if (distance2 <= minRadius2) {
+            // Ball is in the mouth but not colliding
+            return true;
+        }
+
+        glm::vec2 normal = glm::normalize(-delta);
+        glm::vec2 flatVelocity(Velocity);  
+
+        if (glm::dot(normal, flatVelocity) < 0.0f) {
+            // ball is colliding with borders of the mouth
+        
+            // Correct position
+            float distance = glm::length(delta);
+            Position = projPos + glm::vec3(delta, Position.z) * (minRadius/distance);
+
+            // Bouncing
+            Velocity = glm::vec3(glm::reflect(flatVelocity, normal), Velocity.z);
+        }
+
+        return true;
     }
 
     bool insideBounds(float maxX, float maxY) {

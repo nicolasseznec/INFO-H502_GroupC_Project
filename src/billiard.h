@@ -67,7 +67,6 @@ public:
             timer = 0.0f;
 
             balls.at(0).impulse(300.0f, std::rand() % 360);
-            // balls.at(0).impulse(200.0f, -80.0f);
         }
 
         for (PoolBall& ball : balls) {
@@ -84,7 +83,6 @@ public:
                 }
             }
 
-            // ball.checkBounds(COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.checkTable(pockets, COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
