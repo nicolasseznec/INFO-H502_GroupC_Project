@@ -12,6 +12,7 @@
 #include "stb_image.h"
 
 #include <map>
+#include <vector>
 
 #include "camera.h"
 #include "texture.h"
@@ -21,6 +22,7 @@
 #include "input.h"
 #include "debug.h"
 #include "skybox.h"
+#include "billiard.h"
 
 const int width = 800;
 const int height = 800;
@@ -94,17 +96,13 @@ int main(int argc, char* argv[])
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
 
-	Texture texture(PATH_TO_TEXTURE "/pool_table/colorMap.png");
-	Texture textureBall_14(PATH_TO_TEXTURE "/pool_balls/ball_14.jpg");
-	Texture textureBall_5(PATH_TO_TEXTURE "/pool_balls/ball_05.jpg");
-
-	Mesh table_mesh(PATH_TO_OBJECTS "/pool_table.obj");
-	Mesh ball_mesh(PATH_TO_OBJECTS "/pool_ball.obj");
-
-	Entity pool_table(table_mesh, texture);
-	Entity ball(ball_mesh, textureBall_14);
-	Entity ball2(ball_mesh, textureBall_5);
-
+	PoolGame poolGame(
+		PATH_TO_OBJECTS "/pool_table.obj",
+		PATH_TO_TEXTURE "/pool_table/colorMap.png",
+		PATH_TO_OBJECTS "/pool_ball.obj",
+		PATH_TO_TEXTURE "/pool_balls/"
+	);
+	inputHandler.poolGame = &poolGame;
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -128,10 +126,12 @@ int main(int argc, char* argv[])
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
 	
 	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+	/*
 	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
 	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
 	ball2.transform = glm::translate(ball2.transform, glm::vec3(-0.5, 0.0, -2.25));
 	ball2.transform = glm::rotate(ball2.transform, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+	*/
 
 	//Rendering
 	float ambient = 0.1;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 			prev = now;
 			const double fpsCount = (double)frames / delta;
 			frames = 0;
-			std::cout << "\r FPS: " << fpsCount;
+			// std::cout << "\r FPS: " << fpsCount;
 			std::cout.flush();
 		}
 	};
@@ -200,9 +200,8 @@ int main(int argc, char* argv[])
 		simpleShader.setMatrix4("P", perspective);
 		simpleShader.setVector3f("u_view_pos", camera.Position);
 
-		pool_table.draw(simpleShader);
-		ball.draw(simpleShader);
-		ball2.draw(simpleShader);
+		poolGame.update(deltaTime);
+		poolGame.draw(simpleShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
