@@ -103,6 +103,17 @@ int main(int argc, char* argv[])
 		PATH_TO_TEXTURE "/pool_balls/"
 	);
 	inputHandler.poolGame = &poolGame;
+	
+	Mesh room_mesh(PATH_TO_OBJECTS "/room/room.obj");
+	Entity room(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"));
+	
+	Mesh carpet_mesh(PATH_TO_OBJECTS "/room/carpet.obj");
+	Entity carpet(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg"));
+	
+	Mesh bench_mesh(PATH_TO_OBJECTS "/room/bench.obj");
+	Entity bench(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg"));
+
+
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -202,6 +213,10 @@ int main(int argc, char* argv[])
 
 		poolGame.update(deltaTime);
 		poolGame.draw(simpleShader);
+
+		room.draw(simpleShader);
+		carpet.draw(simpleShader);
+		bench.draw(simpleShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
