@@ -80,6 +80,8 @@ int main(int argc, char* argv[])
 	}
 
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 #ifndef NDEBUG
     setupDebug();
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
 
 	/*-----------------------------------------------------------*/
 
-	Shader shader(PATH_TO_SHADERS "/refraction.vert", 
+    Shader shader(PATH_TO_SHADERS "/refraction.vert",
 				  PATH_TO_SHADERS "/refraction.frag");
 	
 	Shader cubeMapShader(PATH_TO_SHADERS "/cubeMap.vert", 
@@ -95,6 +97,15 @@ int main(int argc, char* argv[])
 
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
+
+    Shader lightShader(PATH_TO_SHADERS "/1.advanced_lighting.vert",
+                       PATH_TO_SHADERS "/1.advanced_lighting.frag");
+
+    Shader lightingShader(PATH_TO_SHADERS "/5.4.light_casters.vert",
+                          PATH_TO_SHADERS "/5.4.light_casters.frag");
+
+    Shader multiplelightingShader(PATH_TO_SHADERS "/6.multiple_lights.vert",
+                                  PATH_TO_SHADERS "/6.multiple_lights.frag");
 
 	PoolGame poolGame(
 		PATH_TO_OBJECTS "/pool_table.obj",
@@ -124,8 +135,15 @@ int main(int argc, char* argv[])
 
 	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
 	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
-	
-	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+
+
+
+
+
+
+
+
+    // model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
 	/*
 	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
 	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
@@ -134,12 +152,17 @@ int main(int argc, char* argv[])
 	*/
 
 	//Rendering
+    /*
 	float ambient = 0.1;
 	float diffuse = 0.5;
 	float specular = 0.8;
+     */
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
+
+
+    /*
 	simpleShader.use();
 	simpleShader.setFloat("shininess", 32.0f);
 	simpleShader.setVector3f("materialColour", materialColour);
@@ -149,11 +172,54 @@ int main(int argc, char* argv[])
 	simpleShader.setFloat("light.constant", 1.0);
 	simpleShader.setFloat("light.linear", 0.14);
 	simpleShader.setFloat("light.quadratic", 0.07);
+     */
+
+
+
+
+    lightShader.use();
+    lightShader.setVector3f("materialColour", materialColour);
+
+
+    lightingShader.use();
+    lightingShader.setVector3f("materialColour", materialColour);
+    lightingShader.setFloat("shininess", 32.0f);
+
+
+
+    multiplelightingShader.use();
+    multiplelightingShader.setVector3f("materialColour", materialColour);
+    multiplelightingShader.setFloat("shininess", 32.0f);
+
+
+
+    lightShader.setFloat("shininess", 32.0f);
+    lightShader.setVector3f("materialColour", materialColour);
+    lightShader.setFloat("light.ambient_strength", 0.1);
+    lightShader.setFloat("light.diffuse_strength", 0.5);
+    lightShader.setFloat("light.specular_strength", 0.8);
+    lightShader.setFloat("light.constant", 1.0);
+    lightShader.setFloat("light.linear", 0.14);
+    lightShader.setFloat("light.quadratic", 0.07);
+
+
+
+
+
 
 	shader.use();
 	shader.setFloat("refractionIndice", 1.52);
 
-	/*-----------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+    /*-----------------------------------------------------------*/
 
 	// TODO : put fps/time management in a general update system (used to update the objects in the scene, etc...)
 
@@ -195,13 +261,135 @@ int main(int argc, char* argv[])
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		simpleShader.use();
-		simpleShader.setMatrix4("V", view);
-		simpleShader.setMatrix4("P", perspective);
-		simpleShader.setVector3f("u_view_pos", camera.Position);
 
-		poolGame.update(deltaTime);
-		poolGame.draw(simpleShader);
+        //Initial
+        /*
+        simpleShader.use();
+        simpleShader.setMatrix4("V", view);
+        simpleShader.setMatrix4("P", perspective);
+        simpleShader.setVector3f("u_view_pos", camera.Position);
+        poolGame.update(deltaTime);
+        poolGame.draw(simpleShader);
+        */
+
+
+        //Blinn-Phong
+        /*
+        lightShader.use();
+        lightShader.setMatrix4("V", view);
+        lightShader.setMatrix4("P", perspective);
+        lightShader.setVector3f("u_view_pos", camera.Position);
+        lightShader.setVector3f("light.light_pos", light_pos);
+        poolGame.update(deltaTime);
+        poolGame.draw(lightShader);
+        */
+
+
+        //Single spotlight
+        /*
+        lightingShader.use();
+        lightingShader.setMatrix4("V", view);
+        lightingShader.setMatrix4("P", perspective);
+        lightingShader.setVector3f("u_view_pos", camera.Position);
+        lightingShader.setFloat("shininess", 32.0f);
+
+        glm::vec3 testlums = glm::vec3(-0.5, 2.0, -2.0);
+        glm::vec3 testdir = glm::vec3(0.0, -1.0, 0.0);
+
+        lightingShader.setVector3f("light.light_pos", testlums);
+        lightingShader.setVector3f("light.direction", testdir);
+
+        //lightingShader.setVector3f("light.light_pos", camera.Position);
+        //lightingShader.setVector3f("light.direction", camera.Front);
+
+        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+        lightingShader.setVector3f("light.ambient", 0.1f, 0.1f, 0.1f);
+        // we configure the diffuse intensity slightly higher; the right lighting conditions differ with each lighting method and environment.
+        // each environment and lighting type requires some tweaking to get the best out of your environment.
+        lightingShader.setVector3f("light.diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setVector3f("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setFloat("light.constant", 1.0f);
+        lightingShader.setFloat("light.linear", 0.09f);
+        lightingShader.setFloat("light.quadratic", 0.032f);
+
+        poolGame.update(deltaTime);
+        poolGame.draw(lightingShader);
+        */
+
+
+        //Multiple sources of light (spotlight, light points and directional light)
+        // be sure to activate shader when setting uniforms/drawing objects
+        multiplelightingShader.use();
+        multiplelightingShader.setMatrix4("V", view);
+        multiplelightingShader.setMatrix4("P", perspective);
+        multiplelightingShader.setVector3f("u_view_pos", camera.Position);
+        multiplelightingShader.setFloat("shininess", 32.0f);
+
+        glm::vec3 testlums1 = glm::vec3(-1.0, 0.0, -2.0);
+        glm::vec3 testlums2 = glm::vec3(-0.5, 0.0, -2.0);
+        glm::vec3 testlums3 = glm::vec3(0.5, 0.0, -2.0);
+        glm::vec3 testlums4 = glm::vec3(1.0, 0.0, -2.0);
+        glm::vec3 testdir = glm::vec3(0.0, -1.0, 0.0);
+
+        // directional light
+        multiplelightingShader.setVector3f("dirLight.direction", testdir);
+        multiplelightingShader.setVector3f("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        multiplelightingShader.setVector3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        multiplelightingShader.setVector3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        // point light 1
+        multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
+        multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+        multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+        multiplelightingShader.setVector3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setFloat("pointLights[0].constant", 1.0f);
+        multiplelightingShader.setFloat("pointLights[0].linear", 0.09f);
+        multiplelightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        multiplelightingShader.setVector3f("pointLights[1].light_pos", testlums2);
+        multiplelightingShader.setVector3f("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+        multiplelightingShader.setVector3f("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+        multiplelightingShader.setVector3f("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setFloat("pointLights[1].constant", 1.0f);
+        multiplelightingShader.setFloat("pointLights[1].linear", 0.09f);
+        multiplelightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+        // point light 3
+        multiplelightingShader.setVector3f("pointLights[2].light_pos", testlums3);
+        multiplelightingShader.setVector3f("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        multiplelightingShader.setVector3f("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        multiplelightingShader.setVector3f("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setFloat("pointLights[2].constant", 1.0f);
+        multiplelightingShader.setFloat("pointLights[2].linear", 0.09f);
+        multiplelightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+        // point light 4
+        multiplelightingShader.setVector3f("pointLights[3].light_pos", testlums4);
+        multiplelightingShader.setVector3f("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        multiplelightingShader.setVector3f("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        multiplelightingShader.setVector3f("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setFloat("pointLights[3].constant", 1.0f);
+        multiplelightingShader.setFloat("pointLights[3].linear", 0.09f);
+        multiplelightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+
+        // spotLight
+        //multiplelightingShader.setVector3f("spotLight.light_pos", camera.Position);
+        //multiplelightingShader.setVector3f("spotLight.direction", camera.Front);
+
+        glm::vec3 testspotpos = glm::vec3(0.0, 1.0, -2.0);
+        glm::vec3 testspotdir = glm::vec3(0.0, -1.0, 0.0);
+        multiplelightingShader.setVector3f("spotLight.light_pos", testspotpos);
+        multiplelightingShader.setVector3f("spotLight.direction", testspotdir);
+
+        multiplelightingShader.setVector3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        multiplelightingShader.setVector3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setVector3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        multiplelightingShader.setFloat("spotLight.constant", 1.0f);
+        multiplelightingShader.setFloat("spotLight.linear", 0.09f);
+        multiplelightingShader.setFloat("spotLight.quadratic", 0.032f);
+        multiplelightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        multiplelightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        poolGame.update(deltaTime);
+        poolGame.draw(multiplelightingShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
