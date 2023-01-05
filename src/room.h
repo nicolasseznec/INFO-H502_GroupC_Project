@@ -24,10 +24,17 @@ public:
 
     std::vector<Entity> objects; 
 
+    glm::mat4 transform = glm::mat4(1.0);
+
     RoomScene() {
         objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg")));
         objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg")));
         objects.push_back(Entity(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg")));
+
+        transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, -2.0f));
+        for (Entity& object : objects) {
+            object.transform = this->transform * object.transform;
+        }
     }
 
     void draw(Shader& shader) {
