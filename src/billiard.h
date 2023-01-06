@@ -66,7 +66,7 @@ public:
         if (timer > 5.0f) {
             timer = 0.0f;
 
-            balls.at(0).impulse(300.0f, std::rand() % 360);
+            balls.at(0).impulse(300.0f, (std::rand() % 360) - 130.0f);
         }
 
         for (PoolBall& ball : balls) {

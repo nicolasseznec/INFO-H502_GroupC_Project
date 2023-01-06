@@ -59,10 +59,10 @@ public:
         stbi_image_free(data);
     }
 
-    void bindTexture() 
+    void bindTexture(int unit = 0) 
     {
-        // shader.setInteger("cubemapSampler", 0);   
-        glActiveTexture(GL_TEXTURE0);
+        // shader.setInteger("cubemapSampler", unit);   
+        glActiveTexture(GL_TEXTURE0 + unit);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTexture);
     }
 
