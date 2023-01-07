@@ -125,6 +125,11 @@ int main(int argc, char* argv[])
 	Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
 	mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 1.0f, -3.7f));
 
+	Mesh shelf_mesh(PATH_TO_OBJECTS "/room/shelf.obj");
+	Entity shelf(shelf_mesh, Texture(PATH_TO_TEXTURE "/room/Shelf.jpg"));
+	shelf.transform = glm::translate(shelf.transform, glm::vec3(1.3f, -0.9f, -0.65f));
+	shelf.transform = glm::rotate(shelf.transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	// mirror.transform = glm::scale(mirror.transform, glm::vec3(0.25f, 0.25f, 1.0f));
 	// mirror.transform = glm::rotate(mirror.transform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	
@@ -302,6 +307,7 @@ int main(int argc, char* argv[])
 		poolGame.draw(simpleShader);
 		room.draw(simpleShader);
 		mirror_frame.draw(simpleShader);
+		shelf.draw(simpleShader);
 		
 		windowShader.use();
 		windowShader.setMatrix4("V", view);
@@ -374,7 +380,8 @@ int main(int argc, char* argv[])
 		poolGame.draw(simpleShader);
 		room.draw(simpleShader);
 		mirror_frame.draw(simpleShader);
-		
+		shelf.draw(simpleShader);
+
 		windowShader.use();
 		windowShader.setMatrix4("V", mirroredView); //TODO
 		windowShader.setMatrix4("P", mirroredPerspective); 
