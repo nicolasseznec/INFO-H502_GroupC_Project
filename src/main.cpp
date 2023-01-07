@@ -117,11 +117,16 @@ int main(int argc, char* argv[])
 	Entity window_obj(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"));
 	window_obj.transform = glm::translate(window_obj.transform, glm::vec3(0.0f, -1.0f, -2.0f));
 
-	Mesh mirror_mesh(PATH_TO_OBJECTS "/room/carpet.obj");
+	Mesh mirror_mesh(PATH_TO_OBJECTS "/room/mirror_plane.obj");
 	Entity mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"));
-	mirror.transform = glm::translate(mirror.transform, glm::vec3(0.0f, 1.0f, -3.5f));
-	mirror.transform = glm::scale(mirror.transform, glm::vec3(0.25f, 0.25f, 1.0f));
-	mirror.transform = glm::rotate(mirror.transform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	mirror.transform = glm::translate(mirror.transform, glm::vec3(0.0f, 1.0f, -3.7f));
+
+	Mesh mirror_frame_mesh(PATH_TO_OBJECTS "/room/mirror_frame.obj");
+	Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
+	mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 1.0f, -3.7f));
+
+	// mirror.transform = glm::scale(mirror.transform, glm::vec3(0.25f, 0.25f, 1.0f));
+	// mirror.transform = glm::rotate(mirror.transform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
@@ -295,9 +300,8 @@ int main(int argc, char* argv[])
 		simpleShader.setVector3f("u_view_pos", camera.Position);
 
 		poolGame.draw(simpleShader);
-
 		room.draw(simpleShader);
-
+		mirror_frame.draw(simpleShader);
 		
 		windowShader.use();
 		windowShader.setMatrix4("V", view);
@@ -356,7 +360,7 @@ int main(int argc, char* argv[])
 
 		// TODO : automatically compute
 		glm::vec3 mirroredPosition = camera.Position; 
-		mirroredPosition.z = -6.0f - mirroredPosition.z;
+		mirroredPosition.z = -7.4f - mirroredPosition.z;
 
 		glm::mat4 mirroredView = glm::lookAt(mirroredPosition, mirroredPosition + mirroredFront, mirroredUp);
 		// glm::mat4 mirroredView = view;
@@ -369,6 +373,7 @@ int main(int argc, char* argv[])
 
 		poolGame.draw(simpleShader);
 		room.draw(simpleShader);
+		mirror_frame.draw(simpleShader);
 		
 		windowShader.use();
 		windowShader.setMatrix4("V", mirroredView); //TODO
