@@ -25,5 +25,5 @@ void main() {
     // FragColor = cmColor + texColor*0.5;
 
     // FragColor = vec4(0.5, 0.5, 0.0, 1.0);
-    FragColor = vec4(1.0, 1.0, 1.0, texColor.x*0.5);
+    FragColor = vec4(1.0, 1.0, 1.0, texColor.x);
 } 

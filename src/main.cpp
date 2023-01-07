@@ -153,14 +153,6 @@ int main(int argc, char* argv[])
 
 	glm::vec3 light_pos = glm::vec3(0.0, 1.0, -2.0);
 	
-	// model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-	/*
-	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
-	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
-	ball2.transform = glm::translate(ball2.transform, glm::vec3(-0.5, 0.0, -2.25));
-	ball2.transform = glm::rotate(ball2.transform, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
-	*/
-
 	//Rendering
 	float ambient = 0.1;
 	float diffuse = 0.5;
@@ -208,7 +200,6 @@ int main(int argc, char* argv[])
 	double deltaTime = 0;
 
 	glfwSwapInterval(1);
-
 	while (!glfwWindowShouldClose(window)) {
 
 		double now = glfwGetTime();

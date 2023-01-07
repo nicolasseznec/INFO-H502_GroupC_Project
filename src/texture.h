@@ -40,6 +40,8 @@ public:
         unsigned char* data = stbi_load(path, &imWidth, &imHeight, &imNrChannels, 0);
         if (data)
         {
+            // std::cout << "Loaded texture : " << path << " | " << imWidth << " * " << imHeight << std::endl;
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // in case the texture is in non-power-of-two
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
