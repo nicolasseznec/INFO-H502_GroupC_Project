@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	
 	inputHandler.poolGame = &(room.poolGame);
 
-    Camera camera(glm::vec3(-2.0f, 1.5f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
+    Camera camera(glm::vec3(-2.0f, 2.5f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
 	inputHandler.camera = &camera;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 
-		room.drawMirroredRoom(camera, simpleShader, windowShader, mirrorShader);
+		room.drawMirroredRoom(simpleShader, windowShader, mirrorShader, perspective, view, camera.Position);
 
 		glfwSwapBuffers(window);
 	}

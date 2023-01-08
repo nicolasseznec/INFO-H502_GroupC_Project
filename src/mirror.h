@@ -21,18 +21,16 @@ public:
     Mirror(Mesh& model, Texture texture) : Entity(model, texture) {
     }
 
-    void computeMirroredProperties(Camera& camera) {
-        glm::mat4 perspective = camera.GetProjectionMatrix();
-        glm::mat4 view = camera.GetViewMatrix();
+    void computeMirroredProperties(glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
         mirroredPerspective = perspective;
 
-        glm::vec3 position = glm::vec3(transform * glm::vec4(glm::vec3(0.0f), 1.0f));
+        glm::vec3 point = glm::vec3(transform * glm::vec4(glm::vec3(0.0f), 1.0f));
         glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // TODO : take into account rotations
 
-        glm::vec4 mirrorPlane = planeFromPointNormal(position, normal);
+        glm::vec4 mirrorPlane = planeFromPointNormal(point, normal);
         glm::mat4 reflection = matrixReflect(mirrorPlane);
         mirroredView = view * reflection;
-        mirroredPosition = reflection * glm::vec4(camera.Position, 1.0f);
+        mirroredPosition = reflection * glm::vec4(position, 1.0f);
     }
 
     void draw(Shader& shader) {

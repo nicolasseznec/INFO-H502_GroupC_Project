@@ -56,7 +56,6 @@ public:
             balls.push_back(PoolBall(ballMesh, texture));
         }
 
-        table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
         setupPockets();
         resetGame();
     }
