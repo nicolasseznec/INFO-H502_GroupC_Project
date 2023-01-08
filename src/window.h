@@ -1,27 +1,20 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <iostream>
-#include <vector>
+#include "entity.h"
+#include "skybox.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Entity.h"
-
-
-class Window : public Entity
+class RoomWindow : public Entity
 {
 public:
+    Skybox* skybox;
 
-    // TODO : proper model and texture management
-    Window(Mesh& model, Texture texture) : Entity(model, texture) {
+    RoomWindow(Mesh& model, Texture texture, Skybox* skybox = nullptr) : Entity(model, texture), skybox(skybox) {
     }
 
     void draw(Shader& shader) {
+        shader.setInteger("cubemapSampler", 1);	
+        if (skybox) skybox->bindTexture(1);
         Entity::draw(shader);
 	}
 

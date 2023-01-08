@@ -59,13 +59,11 @@ int main(int argc, char* argv[])
 	// To access the input handler methods from the callbacks
 	glfwSetWindowUserPointer(window, &inputHandler);
 
-	// glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double x, double y) {
 		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
         	inputHandler->mouse_callback(w,x,y);
 	});
 
-	// glfwSetScrollCallback(window, scroll_callback);
 	glfwSetScrollCallback(window, [](GLFWwindow* w, double x, double y) {
 		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
         	inputHandler->scroll_callback(w,x,y);
@@ -106,33 +104,6 @@ int main(int argc, char* argv[])
 	Shader mirrorShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/mirror.frag");
 
-	PoolGame poolGame(
-		PATH_TO_OBJECTS "/pool_table.obj",
-		PATH_TO_TEXTURE "/pool_table/colorMap.png",
-		PATH_TO_OBJECTS "/pool_ball.obj",
-		PATH_TO_TEXTURE "/pool_balls/"
-	);
-	inputHandler.poolGame = &poolGame;
-	
-	RoomScene room;
-
-	Mesh window_mesh(PATH_TO_OBJECTS "/room/windows.obj");
-	Entity window_obj(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"));
-	window_obj.transform = glm::translate(window_obj.transform, glm::vec3(0.0f, -1.0f, -2.0f));
-
-	Mesh mirror_mesh(PATH_TO_OBJECTS "/room/mirror_plane.obj");
-	Entity mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG"));
-	mirror.transform = glm::translate(mirror.transform, glm::vec3(0.0f, 1.0f, -3.7f));
-
-	Mesh mirror_frame_mesh(PATH_TO_OBJECTS "/room/mirror_frame.obj");
-	Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
-	mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 1.0f, -3.7f));
-
-	Mesh shelf_mesh(PATH_TO_OBJECTS "/room/shelf.obj");
-	Entity shelf(shelf_mesh, Texture(PATH_TO_TEXTURE "/room/Shelf.jpg"));
-	shelf.transform = glm::translate(shelf.transform, glm::vec3(1.3f, -0.9f, -0.65f));
-	shelf.transform = glm::rotate(shelf.transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
 	std::map<std::string, GLenum> facesToLoad = {
@@ -145,6 +116,9 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
+	RoomScene room(skybox);
+	
+	inputHandler.poolGame = &(room.poolGame);
 
     Camera camera(glm::vec3(-2.0f, 1.5f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
 	glm::mat4 view = camera.GetViewMatrix();
@@ -171,8 +145,6 @@ int main(int argc, char* argv[])
 	simpleShader.setFloat("light.linear", 0.14);
 	simpleShader.setFloat("light.quadratic", 0.07);
 
-	// shader.use();
-	// shader.setFloat("refractionIndice", 1.52);
 	windowShader.use();
 	windowShader.setFloat("refractionIndice", 1.0);
 
@@ -211,8 +183,8 @@ int main(int argc, char* argv[])
 		inputHandler.processInput(window, deltaTime);
 		view = camera.GetViewMatrix();
 		perspective = camera.GetProjectionMatrix();
-		
-		poolGame.update(deltaTime);
+
+		room.update(deltaTime);
 		
 		glfwPollEvents();
 
@@ -223,23 +195,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_CULL_FACE); 
 
-		simpleShader.use();
-		simpleShader.setMatrix4("V", view);
-		simpleShader.setMatrix4("P", perspective);
-		simpleShader.setVector3f("u_view_pos", camera.Position);
-
-		poolGame.draw(simpleShader);
-		room.draw(simpleShader);
-		mirror_frame.draw(simpleShader);
-		shelf.draw(simpleShader);
-		
-		windowShader.use();
-		windowShader.setMatrix4("V", view);
-		windowShader.setMatrix4("P", perspective);
-		windowShader.setVector3f("u_view_pos", camera.Position);
-		windowShader.setInteger("cubemapSampler", 1);
-		skybox.bindTexture(1);
-		window_obj.draw(windowShader);
+		room.drawRoom(simpleShader, windowShader, perspective, view, camera.Position);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -249,70 +205,8 @@ int main(int argc, char* argv[])
 		skybox.bindTexture();
 		skybox.draw();
 		glDepthFunc(GL_LESS);
-
-		//----------------------------------------------------
-		// 1. Render mirror and set stencil buffer to 1 on touched pixels
 		
-		glStencilOp(GL_REPLACE, GL_KEEP, GL_REPLACE);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glEnable(GL_STENCIL_TEST);
-		glColorMask(0, 0, 0, 0); // TODO : see if necessary
-
-		mirrorShader.use();
-		mirrorShader.setMatrix4("V", view);
-		mirrorShader.setMatrix4("P", perspective);
-		mirrorShader.setVector3f("u_view_pos", camera.Position);
-		mirror.draw(mirrorShader);
-
-		// 2. Render the reflected scene, but only on the mirror (where stencil==1)
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    	glStencilFunc(GL_EQUAL, 1, 0xFF);
-		glColorMask(1, 1, 1, 1);
-
-		glm::mat4 mirroredPerspective = glm::scale(perspective, glm::vec3(-1.0f, 1.0f, 1.0f));
-
-		// TODO : automatically compute
-		glm::vec3 mirroredFront = camera.Front;
-		mirroredFront.z *= -1; 
-
-		glm::vec3 mirroredUp = camera.Up;
-		mirroredUp.z *= -1;
-
-		// TODO : automatically compute
-		glm::vec3 mirroredPosition = camera.Position; 
-		mirroredPosition.z = -7.4f - mirroredPosition.z;
-
-		glm::mat4 mirroredView = glm::lookAt(mirroredPosition, mirroredPosition + mirroredFront, mirroredUp);
-		
-		simpleShader.use();
-		simpleShader.setMatrix4("V", mirroredView); //TODO
-		simpleShader.setMatrix4("P", mirroredPerspective);
-		simpleShader.setVector3f("u_view_pos", mirroredPosition); //TODO
-
-		poolGame.draw(simpleShader);
-		room.draw(simpleShader);
-		mirror_frame.draw(simpleShader);
-		shelf.draw(simpleShader);
-
-		windowShader.use();
-		windowShader.setMatrix4("V", mirroredView); //TODO
-		windowShader.setMatrix4("P", mirroredPerspective); 
-		windowShader.setVector3f("u_view_pos", mirroredPosition); //TODO
-		windowShader.setInteger("cubemapSampler", 1);
-		skybox.bindTexture(1);
-		window_obj.draw(windowShader);
-		
-		// 3. Re-render mirror with color
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glDisable(GL_CULL_FACE); 
-		mirrorShader.use();
-		mirrorShader.setMatrix4("V", view);
-		mirrorShader.setMatrix4("P", perspective);
-		mirrorShader.setVector3f("u_view_pos", camera.Position);
-		mirror.draw(mirrorShader);
+		room.drawMirroredRoom(camera, simpleShader, windowShader, mirrorShader);
 
 		glfwSwapBuffers(window);
 	}
