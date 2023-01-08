@@ -77,7 +77,7 @@ public:
             object.transform = this->transform * object.transform;
         }
         window.transform = this->transform;
-        mirror.transform = glm::translate(mirror.transform, glm::vec3(0.0f, 1.0f, -3.7f)); // TODO : relative to room
+        mirror.transform = this->transform * glm::translate(mirror.transform, glm::vec3(0.0f, 2.0f, -1.7f)); // TODO : relative to room
     }
 
 

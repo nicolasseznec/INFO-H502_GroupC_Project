@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include "entity.h"
 #include "camera.h"
@@ -23,26 +24,37 @@ public:
     void computeMirroredProperties(Camera& camera) {
         glm::mat4 perspective = camera.GetProjectionMatrix();
         glm::mat4 view = camera.GetViewMatrix();
+        mirroredPerspective = perspective;
 
-        mirroredPerspective = glm::scale(perspective, glm::vec3(-1.0f, 1.0f, 1.0f));
+        glm::vec3 position = glm::vec3(transform * glm::vec4(glm::vec3(0.0f), 1.0f));
+        glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // TODO : take into account rotations
 
-		// TODO : automatically compute
-		glm::vec3 mirroredFront = camera.Front;
-		mirroredFront.z *= -1; 
-
-		glm::vec3 mirroredUp = camera.Up;
-		mirroredUp.z *= -1;
-
-		// TODO : automatically compute
-		mirroredPosition = camera.Position; 
-		mirroredPosition.z = -7.4f - mirroredPosition.z;
-
-		mirroredView = glm::lookAt(mirroredPosition, mirroredPosition + mirroredFront, mirroredUp);
+        glm::vec4 mirrorPlane = planeFromPointNormal(position, normal);
+        glm::mat4 reflection = matrixReflect(mirrorPlane);
+        mirroredView = view * reflection;
+        mirroredPosition = reflection * glm::vec4(camera.Position, 1.0f);
     }
 
     void draw(Shader& shader) {
         Entity::draw(shader);
 	}
+
+private:
+    // Helper functions taken from :
+    // https://gamedev.stackexchange.com/questions/198098/how-do-i-calculate-a-matrix-to-render-a-mirror-about-a-plane-using-glm
+    glm::vec4 planeFromPointNormal(glm::vec3 pt, glm::vec3 normal) {
+        auto norm = glm::normalize(normal);
+        return { norm.x, norm.y, norm.z, -glm::dot(pt, norm) };
+    }
+
+    glm::mat4 matrixReflect(glm::vec4 plane) {
+        return glm::mat4{
+            -2 * plane.x * plane.x + 1,  -2 * plane.y * plane.x,      -2 * plane.z * plane.x,        0,
+            -2 * plane.x * plane.y,      -2 * plane.y * plane.y + 1,  -2 * plane.z * plane.y,        0,
+            -2 * plane.x * plane.z,      -2 * plane.y * plane.z,      -2 * plane.z * plane.z + 1,    0,
+            -2 * plane.x * plane.w,      -2 * plane.y * plane.w,      -2 * plane.z * plane.w,        1
+        };
+    }
 };
 
 #endif /* MIRROR_H */
