@@ -56,7 +56,6 @@ public:
             balls.push_back(PoolBall(ballMesh, texture));
         }
 
-        table.transform = glm::translate(table.transform, glm::vec3(0.0, -1.0, -2.0));
         setupPockets();
         resetGame();
     }
@@ -66,7 +65,7 @@ public:
         if (timer > 5.0f) {
             timer = 0.0f;
 
-            balls.at(0).impulse(300.0f, std::rand() % 360);
+            balls.at(0).impulse(300.0f, (std::rand() % 360) - 130.0f);
         }
 
         for (PoolBall& ball : balls) {

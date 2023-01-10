@@ -23,7 +23,7 @@
 #include "debug.h"
 #include "skybox.h"
 #include "billiard.h"
-
+#include "room.h"
 
 
 unsigned int loadTexture(const char *path);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 #endif
 
 	//Create the window
-	GLFWwindow* window = glfwCreateWindow(width, height, "Exercise 10", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "Late night 8 Ball pool", nullptr, nullptr);
 	if (window == NULL)
 	{
 		glfwTerminate();
@@ -65,13 +65,11 @@ int main(int argc, char* argv[])
 	// To access the input handler methods from the callbacks
 	glfwSetWindowUserPointer(window, &inputHandler);
 
-	// glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double x, double y) {
 		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
         	inputHandler->mouse_callback(w,x,y);
 	});
 
-	// glfwSetScrollCallback(window, scroll_callback);
 	glfwSetScrollCallback(window, [](GLFWwindow* w, double x, double y) {
 		if (InputHandler* inputHandler = static_cast<InputHandler*>(glfwGetWindowUserPointer(w)))
         	inputHandler->scroll_callback(w,x,y);
@@ -164,13 +162,11 @@ int main(int argc, char* argv[])
     Shader multiplelightingShader(PATH_TO_SHADERS "/multiple_lights.vert",
                                   PATH_TO_SHADERS "/multiple_lights.frag");
 
-	PoolGame poolGame(
-		PATH_TO_OBJECTS "/pool_table.obj",
-		PATH_TO_TEXTURE "/pool_table/colorMap.png",
-		PATH_TO_OBJECTS "/pool_ball.obj",
-		PATH_TO_TEXTURE "/pool_balls/"
-	);
-	inputHandler.poolGame = &poolGame;
+	Shader windowShader(PATH_TO_SHADERS "/simple.vert", 
+						PATH_TO_SHADERS "/window.frag");
+						
+	Shader mirrorShader(PATH_TO_SHADERS "/simple.vert", 
+						PATH_TO_SHADERS "/mirror.frag");
 
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -184,52 +180,40 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
+	RoomScene room(skybox);
+	
+	inputHandler.poolGame = &(room.poolGame);
 
-    Camera camera(glm::vec3(0.0, 0.0, 0.1));
+    Camera camera(glm::vec3(-2.0f, 2.5f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
 	inputHandler.camera = &camera;
 
-	// glm::vec3 light_pos = glm::vec3(1.0, 2.0, 1.5);
-	glm::vec3 light_pos = glm::vec3(0.0, 5.0, -2.0);
-
-
-
-
-
-
-
-
-    // model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-	/*
-	pool_table.transform = glm::translate(pool_table.transform, glm::vec3(0.0, -1.0, -2.0));
-	ball.transform = glm::translate(ball.transform, glm::vec3(0.0, 0.0, -2.0));
-	ball2.transform = glm::translate(ball2.transform, glm::vec3(-0.5, 0.0, -2.25));
-	ball2.transform = glm::rotate(ball2.transform, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
-	*/
-
+	glm::vec3 light_pos = glm::vec3(0.0, 2.0, 0.0);
+	
 	//Rendering
-    /*
+    
 	float ambient = 0.1;
 	float diffuse = 0.5;
 	float specular = 0.8;
-     */
+    
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
 
 
-    /*
+    
 	simpleShader.use();
 	simpleShader.setFloat("shininess", 32.0f);
 	simpleShader.setVector3f("materialColour", materialColour);
+	simpleShader.setVector3f("light.light_pos", light_pos);
 	simpleShader.setFloat("light.ambient_strength", ambient);
 	simpleShader.setFloat("light.diffuse_strength", diffuse);
 	simpleShader.setFloat("light.specular_strength", specular);
 	simpleShader.setFloat("light.constant", 1.0);
 	simpleShader.setFloat("light.linear", 0.14);
 	simpleShader.setFloat("light.quadratic", 0.07);
-     */
+    
 
 
 
@@ -264,8 +248,8 @@ int main(int argc, char* argv[])
 
 
 
-	shader.use();
-	shader.setFloat("refractionIndice", 1.52);
+	windowShader.use();
+	windowShader.setFloat("refractionIndice", 1.0);
 
 
 
@@ -276,8 +260,6 @@ int main(int argc, char* argv[])
 
 
     /*-----------------------------------------------------------*/
-
-	// TODO : put fps/time management in a general update system (used to update the objects in the scene, etc...)
 
 	double prev = 0;
 	int frames = 0;
@@ -299,7 +281,6 @@ int main(int argc, char* argv[])
 	double deltaTime = 0;
 
 	glfwSwapInterval(1);
-	
 	while (!glfwWindowShouldClose(window)) {
 		double now = glfwGetTime();
 		deltaTime = now - prevTime;
@@ -307,19 +288,19 @@ int main(int argc, char* argv[])
 		fps(now);
 		inputHandler.processInput(window, deltaTime);
 
-
         view = camera.GetViewMatrix();
 		perspective = camera.GetProjectionMatrix();
+
+		room.update(deltaTime);
+		
 		glfwPollEvents();
 
-
 		// ------------- Render -------------
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_CULL_FACE); 
 
         // 0. create depth cubemap transformation matrices
         // -----------------------------------------------
@@ -334,28 +315,6 @@ int main(int argc, char* argv[])
         shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
         shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // 1. render scene to depth cubemap
         // --------------------------------
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -368,11 +327,6 @@ int main(int argc, char* argv[])
         simpleDepthShader.setVector3f("lightPos", lightPos);
 
 
-
-
-
-
-
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(5.0f));
         simpleDepthShader.setMatrix4("M", model);
@@ -380,23 +334,15 @@ int main(int argc, char* argv[])
         //simpleDepthShader.setInteger("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
         renderCube();
         //simpleDepthShader.setInteger("reverse_normals", 0); // and of course disable it
-        glEnable(GL_CULL_FACE);
+        // glEnable(GL_CULL_FACE);
         // cubes
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
         model = glm::scale(model, glm::vec3(0.5f));
         simpleDepthShader.setMatrix4("M", model);
         //renderCube();
-        poolGame.draw(simpleDepthShader);
+        //poolGame.draw(simpleDepthShader); //TODO : draw room on depth map
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-
-
-
-
-
 
 
         // 2. render scene as normal
@@ -417,19 +363,10 @@ int main(int argc, char* argv[])
         shadowShader.setMatrix4("V", view);
         shadowShader.setMatrix4("P", perspective);
 
-
-
-
-
-
         //glActiveTexture(GL_TEXTURE0);
         //glBindTexture(GL_TEXTURE_2D, shadowTexture);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-
-
-
-
 
 
         glm::mat4 modele = glm::mat4(1.0f);
@@ -439,88 +376,14 @@ int main(int argc, char* argv[])
         shadowShader.setInteger("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
         renderCube();
         shadowShader.setInteger("reverse_normals", 0); // and of course disable it
-        glEnable(GL_CULL_FACE);
+        // glEnable(GL_CULL_FACE);
         // cubes
         modele = glm::mat4(1.0f);
         modele = glm::translate(modele, glm::vec3(4.0f, -3.5f, 0.0));
         modele = glm::scale(modele, glm::vec3(0.5f));
         shadowShader.setMatrix4("M", modele);
         //renderCube();
-        poolGame.update(deltaTime);
         //poolGame.draw(shadowShader);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //Initial
-        /*
-        simpleShader.use();
-        simpleShader.setMatrix4("V", view);
-        simpleShader.setMatrix4("P", perspective);
-        simpleShader.setVector3f("u_view_pos", camera.Position);
-        poolGame.update(deltaTime);
-        poolGame.draw(simpleShader);
-        */
-
-
-        //Blinn-Phong
-
-
-        /*
-        lightShader.use();
-        lightShader.setMatrix4("V", view);
-        lightShader.setMatrix4("P", perspective);
-        lightShader.setVector3f("u_view_pos", camera.Position);
-        lightShader.setVector3f("light.light_pos", light_pos);
-        poolGame.update(deltaTime);
-        poolGame.draw(lightShader);
-        */
-
-
-
-        //Single spotlight
-        /*
-        lightingShader.use();
-        lightingShader.setMatrix4("V", view);
-        lightingShader.setMatrix4("P", perspective);
-        lightingShader.setVector3f("u_view_pos", camera.Position);
-        lightingShader.setFloat("shininess", 32.0f);
-
-        glm::vec3 testlums = glm::vec3(-0.5, 2.0, -2.0);
-        glm::vec3 testdir = glm::vec3(0.0, -1.0, 0.0);
-
-        lightingShader.setVector3f("light.light_pos", testlums);
-        lightingShader.setVector3f("light.direction", testdir);
-
-        //lightingShader.setVector3f("light.light_pos", camera.Position);
-        //lightingShader.setVector3f("light.direction", camera.Front);
-
-        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-        lightingShader.setVector3f("light.ambient", 0.1f, 0.1f, 0.1f);
-        // we configure the diffuse intensity slightly higher; the right lighting conditions differ with each lighting method and environment.
-        // each environment and lighting type requires some tweaking to get the best out of your environment.
-        lightingShader.setVector3f("light.diffuse", 0.8f, 0.8f, 0.8f);
-        lightingShader.setVector3f("light.specular", 1.0f, 1.0f, 1.0f);
-        lightingShader.setFloat("light.constant", 1.0f);
-        lightingShader.setFloat("light.linear", 0.09f);
-        lightingShader.setFloat("light.quadratic", 0.032f);
-
-        poolGame.update(deltaTime);
-        poolGame.draw(lightingShader);
-        */
-
-
 
 
         //Multiple sources of light (spotlight, light points and directional light)
@@ -593,9 +456,11 @@ int main(int argc, char* argv[])
         multiplelightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         multiplelightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-        poolGame.update(deltaTime);
-        poolGame.draw(multiplelightingShader);
+        //poolGame.update(deltaTime);
+        //poolGame.draw(multiplelightingShader);
 
+
+		room.drawRoom(simpleShader, windowShader, perspective, view, camera.Position);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -605,6 +470,8 @@ int main(int argc, char* argv[])
 		skybox.bindTexture();
 		skybox.draw();
 		glDepthFunc(GL_LESS);
+
+		room.drawMirroredRoom(simpleShader, windowShader, mirrorShader, perspective, view, camera.Position);
 
 		glfwSwapBuffers(window);
 	}
