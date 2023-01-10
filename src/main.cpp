@@ -28,15 +28,11 @@
 
 unsigned int loadTexture(const char *path);
 void renderCube();
-
 bool shadows = true;
-
-
-
-
-
 const int width = 800;
 const int height = 800;
+
+
 
 int main(int argc, char* argv[])
 {
@@ -99,21 +95,17 @@ int main(int argc, char* argv[])
 #endif
 
 	/*-----------------------------------------------------------*/
+    Shader shadowShader(PATH_TO_SHADERS "/point_shadows.vert",
+                        PATH_TO_SHADERS "/point_shadows.frag");
+
+
+    Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
+                             PATH_TO_SHADERS "/point_shadows_depth.frag",
+                             PATH_TO_SHADERS "/point_shadows_depth.gs");
 
 
 
-
-    Shader shadowShader(PATH_TO_SHADERS "/3.2.2.point_shadows.vert",
-                        PATH_TO_SHADERS "/3.2.2.point_shadows.frag");
-
-
-    Shader simpleDepthShader(PATH_TO_SHADERS "/3.2.2.point_shadows_depth.vert",
-                             PATH_TO_SHADERS "/3.2.2.point_shadows_depth.frag",
-                             PATH_TO_SHADERS "/3.2.2.point_shadows_depth.gs");
-
-
-
-    unsigned int woodTexture = loadTexture("C:/Users/Mohamed/Desktop/LearnOpenGL/resources/textures/wood.png");
+    //unsigned int shadowTexture = loadTexture(PATH_TO_TEXTURE "/cubemaps/yokohama3/posx.jpg");
 
 
     // configure depth map FBO
@@ -163,14 +155,14 @@ int main(int argc, char* argv[])
 	Shader simpleShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/simple.frag");
 
-    Shader lightShader(PATH_TO_SHADERS "/1.advanced_lighting.vert",
-                       PATH_TO_SHADERS "/1.advanced_lighting.frag");
+    Shader lightShader(PATH_TO_SHADERS "/advanced_lighting.vert",
+                       PATH_TO_SHADERS "/advanced_lighting.frag");
 
-    Shader lightingShader(PATH_TO_SHADERS "/5.4.light_casters.vert",
-                          PATH_TO_SHADERS "/5.4.light_casters.frag");
+    Shader lightingShader(PATH_TO_SHADERS "/light_casters.vert",
+                          PATH_TO_SHADERS "/light_casters.frag");
 
-    Shader multiplelightingShader(PATH_TO_SHADERS "/6.multiple_lights.vert",
-                                  PATH_TO_SHADERS "/6.multiple_lights.frag");
+    Shader multiplelightingShader(PATH_TO_SHADERS "/multiple_lights.vert",
+                                  PATH_TO_SHADERS "/multiple_lights.frag");
 
 	PoolGame poolGame(
 		PATH_TO_OBJECTS "/pool_table.obj",
@@ -342,6 +334,28 @@ int main(int argc, char* argv[])
         shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
         shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // 1. render scene to depth cubemap
         // --------------------------------
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -383,6 +397,8 @@ int main(int argc, char* argv[])
 
 
 
+
+
         // 2. render scene as normal
         // -------------------------
         glViewport(0, 0, width, height);
@@ -402,10 +418,20 @@ int main(int argc, char* argv[])
         shadowShader.setMatrix4("P", perspective);
 
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, woodTexture);
+
+
+
+
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, shadowTexture);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+
+
+
+
+
+
         glm::mat4 modele = glm::mat4(1.0f);
         modele = glm::scale(modele, glm::vec3(5.0f));
         shadowShader.setMatrix4("M", modele);
@@ -421,7 +447,16 @@ int main(int argc, char* argv[])
         shadowShader.setMatrix4("M", modele);
         //renderCube();
         poolGame.update(deltaTime);
-        poolGame.draw(shadowShader);
+        //poolGame.draw(shadowShader);
+
+
+
+
+
+
+
+
+
 
 
 
@@ -439,6 +474,8 @@ int main(int argc, char* argv[])
 
 
         //Blinn-Phong
+
+
         /*
         lightShader.use();
         lightShader.setMatrix4("V", view);
@@ -448,6 +485,7 @@ int main(int argc, char* argv[])
         poolGame.update(deltaTime);
         poolGame.draw(lightShader);
         */
+
 
 
         //Single spotlight
@@ -484,7 +522,7 @@ int main(int argc, char* argv[])
 
 
 
-        /*
+
         //Multiple sources of light (spotlight, light points and directional light)
         // be sure to activate shader when setting uniforms/drawing objects
         multiplelightingShader.use();
@@ -557,7 +595,7 @@ int main(int argc, char* argv[])
 
         poolGame.update(deltaTime);
         poolGame.draw(multiplelightingShader);
-         */
+
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -666,6 +704,8 @@ void renderCube()
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
+
+
 unsigned int loadTexture(char const * path)
 {
     unsigned int textureID;

@@ -23,11 +23,11 @@ uniform bool shadows;
 // array of offset direction for sampling
 vec3 gridSamplingDisk[20] = vec3[]
 (
-   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
-   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
-   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
-   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
+vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
 );
 
 float ShadowCalculation(vec3 fragPos)
@@ -50,16 +50,16 @@ float ShadowCalculation(vec3 fragPos)
     // float offset = 0.1;
     // for(float x = -offset; x < offset; x += offset / (samples * 0.5))
     // {
-        // for(float y = -offset; y < offset; y += offset / (samples * 0.5))
-        // {
-            // for(float z = -offset; z < offset; z += offset / (samples * 0.5))
-            // {
-                // float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; // use lightdir to lookup cubemap
-                // closestDepth *= far_plane;   // Undo mapping [0;1]
-                // if(currentDepth - bias > closestDepth)
-                    // shadow += 1.0;
-            // }
-        // }
+    // for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+    // {
+    // for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+    // {
+    // float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; // use lightdir to lookup cubemap
+    // closestDepth *= far_plane;   // Undo mapping [0;1]
+    // if(currentDepth - bias > closestDepth)
+    // shadow += 1.0;
+    // }
+    // }
     // }
     // shadow /= (samples * samples * samples);
     float shadow = 0.0;
@@ -72,7 +72,7 @@ float ShadowCalculation(vec3 fragPos)
         float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
         closestDepth *= far_plane;   // undo mapping [0;1]
         if(currentDepth - bias > closestDepth)
-            shadow += 1.0;
+        shadow += 1.0;
     }
     shadow /= float(samples);
 
@@ -91,7 +91,7 @@ void main()
 
 
     //vec3 ambient = 0.3 * lightColor;
-    vec3 ambient = 1.0 * lightColor;
+    vec3 ambient = lightColor;
 
 
 
@@ -101,7 +101,7 @@ void main()
 
 
     //vec3 diffuse = diff * lightColor;
-    vec3 diffuse = 1.0 * lightColor;
+    vec3 diffuse = lightColor;
 
 
 
@@ -115,7 +115,8 @@ void main()
 
 
     //vec3 specular = spec * lightColor;
-    vec3 specular = 1.0 * lightColor;
+    vec3 specular = lightColor;
+
 
 
     // calculate shadow
