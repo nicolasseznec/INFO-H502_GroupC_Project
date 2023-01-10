@@ -105,14 +105,14 @@ void main()
     // phase 3: spot light
     result += CalcSpotLight(spotLight, norm, v_frag_coord, viewDir);
     
-    FragColor = vec4(result, 1.0);
+    // FragColor = vec4(result, 1.0);
     
-    // float shadow = ShadowCalculation(v_frag_coord);
-    // FragColor = vec4(result * (1.0 - shadow), 1.0);
+    float shadow = ShadowCalculation(v_frag_coord) * 0.5;
+    FragColor = vec4(result * (1.0 - shadow), 1.0);
     // result = vec3(1.0, 1.0, 1.0)
     // FragColor = vec4(result * shadow, 1.0);
     // FragColor = vec4(result.x * (1.0 - shadow), result.y * (1.0 - shadow), result.z * (1.0 - shadow), 1.0);
-    // FragColor = vec4(shadow, shadow, shadow, 1.0);
+    // FragColor = vec4(vec3(shadow), 1.0);
 }
 
 // calculates the color when using a directional light.
@@ -211,11 +211,13 @@ float ShadowCalculation(vec3 fragPos)
     // }
     // }
     // shadow /= (samples * samples * samples);
+
     float shadow = 0.0;
     float bias = 0.15;
     int samples = 20;
     float viewDistance = length(u_view_pos - fragPos);
     float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    
     for(int i = 0; i < samples; i++)
     {
         float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
@@ -227,6 +229,8 @@ float ShadowCalculation(vec3 fragPos)
 
     // display closestDepth as debug (to visualize depth cubemap)
     // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);
+    // float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[0] * diskRadius).r;
+    // shadow = closestDepth / far_plane;
 
     return shadow;
 }

@@ -27,7 +27,7 @@
 
 
 std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos);
-void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position);
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane);
 
 void renderCube();
 bool shadows = true;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 	// lighting info
     // -------------
 	glm::vec3 lightPos(0.0f, 2.0f, 0.0f); 
-	glm::vec3 light_pos = glm::vec3(0.0, 2.0, 0.0);  // Unused
+	glm::vec3 light_pos = glm::vec3(0.0, 2.5, 0.0);  // Unused
 	
 
 	//Rendering
@@ -308,7 +308,7 @@ int main(int argc, char* argv[])
         // glEnable(GL_CULL_FACE);
 
         
-		setupLightShader(multiplelightingShader, perspective, view, camera.Position);
+		setupLightShader(multiplelightingShader, perspective, view, camera.Position, lightPos, far_plane);
 		room.poolGame.draw(multiplelightingShader);
 		
 		
@@ -352,13 +352,14 @@ std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 li
 }
 
 
-void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane) {
 	multiplelightingShader.use();	
 	multiplelightingShader.setInteger("depthMap", 2);	
+	multiplelightingShader.setFloat("far_plane", far_plane);	
 	multiplelightingShader.setMatrix4("V", view);
 	multiplelightingShader.setMatrix4("P", perspective);
 	multiplelightingShader.setVector3f("u_view_pos", position);
-	multiplelightingShader.setVector3f("lightPos", glm::vec3(0.0f, 1.5f, 0.0f)); // TODO : Light pos
+	multiplelightingShader.setVector3f("lightPos", lightPos);
 	// multiplelightingShader.setFloat("shininess", 32.0f);
 
 	glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
