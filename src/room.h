@@ -97,6 +97,14 @@ public:
         window.draw(windowShader);
     }
 
+    void drawDepthMap(Shader& depthShader) {
+        poolGame.draw(depthShader);
+        // for (Entity& object : objects) {
+        for (int i = 1; i < objects.size(); i++) {
+            objects.at(i).draw(depthShader);
+        }
+    }
+
     void drawMirroredRoom(Shader& shader, Shader& windowShader, Shader& mirrorShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
         glStencilOp(GL_REPLACE, GL_KEEP, GL_REPLACE);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);

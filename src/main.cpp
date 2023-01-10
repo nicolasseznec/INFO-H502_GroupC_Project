@@ -26,7 +26,9 @@
 #include "room.h"
 
 
-unsigned int loadTexture(const char *path);
+std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos);
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position);
+
 void renderCube();
 bool shadows = true;
 const int width = 800;
@@ -93,19 +95,6 @@ int main(int argc, char* argv[])
 #endif
 
 	/*-----------------------------------------------------------*/
-    Shader shadowShader(PATH_TO_SHADERS "/point_shadows.vert",
-                        PATH_TO_SHADERS "/point_shadows.frag");
-
-
-    Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
-                             PATH_TO_SHADERS "/point_shadows_depth.frag",
-                             PATH_TO_SHADERS "/point_shadows_depth.gs");
-
-
-
-    //unsigned int shadowTexture = loadTexture(PATH_TO_TEXTURE "/cubemaps/yokohama3/posx.jpg");
-
-
     // configure depth map FBO
     // -----------------------
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -130,19 +119,7 @@ int main(int argc, char* argv[])
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-
-    // shader configuration
-    // --------------------
-    shadowShader.use();
-    //shadowShader.setInteger("diffuseTexture", 0);
-    shadowShader.setInteger("depthMap", 1);
-
-    // lighting info
-    // -------------
-
-    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
-
-
+	// Loading shaders
 
     Shader shader(PATH_TO_SHADERS "/refraction.vert",
 				  PATH_TO_SHADERS "/refraction.frag");
@@ -168,6 +145,14 @@ int main(int argc, char* argv[])
 	Shader mirrorShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/mirror.frag");
 
+	Shader shadowShader(PATH_TO_SHADERS "/point_shadows.vert",
+                        PATH_TO_SHADERS "/point_shadows.frag");
+
+    Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
+                             PATH_TO_SHADERS "/point_shadows_depth.frag",
+                             PATH_TO_SHADERS "/point_shadows_depth.gs");
+
+	// Skybox
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
 	std::map<std::string, GLenum> facesToLoad = {
@@ -180,8 +165,9 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
+	// Scene
 	RoomScene room(skybox);
-	
+
 	inputHandler.poolGame = &(room.poolGame);
 
     Camera camera(glm::vec3(-2.0f, 2.5f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
@@ -189,75 +175,43 @@ int main(int argc, char* argv[])
 	glm::mat4 perspective = camera.GetProjectionMatrix();
 	inputHandler.camera = &camera;
 
-	glm::vec3 light_pos = glm::vec3(0.0, 2.0, 0.0);
+	// lighting info
+    // -------------
+	glm::vec3 lightPos(0.0f, 2.0f, 0.0f); 
+	glm::vec3 light_pos = glm::vec3(0.0, 2.0, 0.0);  // Unused
 	
+
 	//Rendering
-    
 	float ambient = 0.1;
 	float diffuse = 0.5;
 	float specular = 0.8;
     
-
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
+	// shader configuration
+    // --------------------
 
-
-    
-	simpleShader.use();
-	simpleShader.setFloat("shininess", 32.0f);
-	simpleShader.setVector3f("materialColour", materialColour);
-	simpleShader.setVector3f("light.light_pos", light_pos);
-	simpleShader.setFloat("light.ambient_strength", ambient);
-	simpleShader.setFloat("light.diffuse_strength", diffuse);
-	simpleShader.setFloat("light.specular_strength", specular);
-	simpleShader.setFloat("light.constant", 1.0);
-	simpleShader.setFloat("light.linear", 0.14);
-	simpleShader.setFloat("light.quadratic", 0.07);
-    
-
-
-
-
-    lightShader.use();
-    lightShader.setVector3f("materialColour", materialColour);
-
-
-    lightingShader.use();
-    lightingShader.setVector3f("materialColour", materialColour);
-    lightingShader.setFloat("shininess", 32.0f);
-
-
+    shadowShader.use();
+    // shadowShader.setInteger("depthMap", 1);
+    shadowShader.setInteger("depthMap", 2);
+	shadowShader.setVector3f("materialColour", materialColour);
+    //shadowShader.setInteger("diffuseTexture", 0);
+    // shadowShader.setFloat("shininess", 32.0f);
 
     multiplelightingShader.use();
     multiplelightingShader.setVector3f("materialColour", materialColour);
     multiplelightingShader.setFloat("shininess", 32.0f);
 
-
-
-    lightShader.setFloat("shininess", 32.0f);
-    lightShader.setVector3f("materialColour", materialColour);
-    lightShader.setFloat("light.ambient_strength", 0.1);
-    lightShader.setFloat("light.diffuse_strength", 0.5);
-    lightShader.setFloat("light.specular_strength", 0.8);
-    lightShader.setFloat("light.constant", 1.0);
-    lightShader.setFloat("light.linear", 0.14);
-    lightShader.setFloat("light.quadratic", 0.07);
-
-
-
-
-
-
 	windowShader.use();
 	windowShader.setFloat("refractionIndice", 1.0);
 
 
-
-    shadowShader.use();
-    shadowShader.setVector3f("materialColour", materialColour);
-    //shadowShader.setFloat("shininess", 32.0f);
-
-
+	// 0. create depth cubemap transformation matrices
+	// -----------------------------------------------
+	float near_plane = 1.0f;
+	float far_plane = 25.0f;
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
+	std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
 
     /*-----------------------------------------------------------*/
 
@@ -272,7 +226,7 @@ int main(int argc, char* argv[])
 			prev = now;
 			const double fpsCount = (double)frames / delta;
 			frames = 0;
-			// std::cout << "\r FPS: " << fpsCount;
+			std::cout << "\r FPS: " << fpsCount;
 			std::cout.flush();
 		}
 	};
@@ -302,19 +256,6 @@ int main(int argc, char* argv[])
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_CULL_FACE); 
 
-        // 0. create depth cubemap transformation matrices
-        // -----------------------------------------------
-        float near_plane = 1.0f;
-        float far_plane = 25.0f;
-        glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
-        std::vector<glm::mat4> shadowTransforms;
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-
         // 1. render scene to depth cubemap
         // --------------------------------
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -326,23 +267,18 @@ int main(int argc, char* argv[])
         simpleDepthShader.setFloat("far_plane", far_plane);
         simpleDepthShader.setVector3f("lightPos", lightPos);
 
-
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(5.0f));
         simpleDepthShader.setMatrix4("M", model);
-        glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-        //simpleDepthShader.setInteger("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+        // glDisable(GL_CULL_FACE);
         renderCube();
-        //simpleDepthShader.setInteger("reverse_normals", 0); // and of course disable it
         // glEnable(GL_CULL_FACE);
-        // cubes
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
-        model = glm::scale(model, glm::vec3(0.5f));
-        simpleDepthShader.setMatrix4("M", model);
-        //renderCube();
-        //poolGame.draw(simpleDepthShader); //TODO : draw room on depth map
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // glCullFace(GL_BACK);
+
+		// room.poolGame.draw(simpleDepthShader);
+		room.drawDepthMap(simpleDepthShader);
+        
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
         // 2. render scene as normal
@@ -350,117 +286,33 @@ int main(int argc, char* argv[])
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shadowShader.use();
-        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
-        //glm::mat4 view = camera.GetViewMatrix();
-        //shadowShader.setMatrix4("projection", projection);
-        //shadowShader.setMatrix4("view", view);
+
         // set lighting uniforms
         shadowShader.setVector3f("lightPos", lightPos);
         shadowShader.setVector3f("viewPos", camera.Position);
         shadowShader.setInteger("shadows", shadows); // enable/disable shadows by pressing 'SPACE'
         shadowShader.setFloat("far_plane", far_plane);
-        shadowShader.use();
         shadowShader.setMatrix4("V", view);
         shadowShader.setMatrix4("P", perspective);
 
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, shadowTexture);
-        glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-
 
         glm::mat4 modele = glm::mat4(1.0f);
         modele = glm::scale(modele, glm::vec3(5.0f));
         shadowShader.setMatrix4("M", modele);
-        glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
+        // glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
         shadowShader.setInteger("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
         renderCube();
         shadowShader.setInteger("reverse_normals", 0); // and of course disable it
         // glEnable(GL_CULL_FACE);
-        // cubes
-        modele = glm::mat4(1.0f);
-        modele = glm::translate(modele, glm::vec3(4.0f, -3.5f, 0.0));
-        modele = glm::scale(modele, glm::vec3(0.5f));
-        shadowShader.setMatrix4("M", modele);
-        //renderCube();
-        //poolGame.draw(shadowShader);
 
-
-        //Multiple sources of light (spotlight, light points and directional light)
-        // be sure to activate shader when setting uniforms/drawing objects
-        multiplelightingShader.use();
-        multiplelightingShader.setMatrix4("V", view);
-        multiplelightingShader.setMatrix4("P", perspective);
-        multiplelightingShader.setVector3f("u_view_pos", camera.Position);
-        multiplelightingShader.setFloat("shininess", 32.0f);
-
-        glm::vec3 testlums1 = glm::vec3(-1.0, 0.0, -2.0);
-        glm::vec3 testlums2 = glm::vec3(-0.5, 0.0, -2.0);
-        glm::vec3 testlums3 = glm::vec3(0.5, 0.0, -2.0);
-        glm::vec3 testlums4 = glm::vec3(1.0, 0.0, -2.0);
-        glm::vec3 testdir = glm::vec3(0.0, -1.0, 0.0);
-
-        // directional light
-        multiplelightingShader.setVector3f("dirLight.direction", testdir);
-        multiplelightingShader.setVector3f("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        multiplelightingShader.setVector3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        multiplelightingShader.setVector3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        // point light 1
-        multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
-        multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-        multiplelightingShader.setVector3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setFloat("pointLights[0].constant", 1.0f);
-        multiplelightingShader.setFloat("pointLights[0].linear", 0.09f);
-        multiplelightingShader.setFloat("pointLights[0].quadratic", 0.032f);
-        // point light 2
-        multiplelightingShader.setVector3f("pointLights[1].light_pos", testlums2);
-        multiplelightingShader.setVector3f("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        multiplelightingShader.setVector3f("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-        multiplelightingShader.setVector3f("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setFloat("pointLights[1].constant", 1.0f);
-        multiplelightingShader.setFloat("pointLights[1].linear", 0.09f);
-        multiplelightingShader.setFloat("pointLights[1].quadratic", 0.032f);
-        // point light 3
-        multiplelightingShader.setVector3f("pointLights[2].light_pos", testlums3);
-        multiplelightingShader.setVector3f("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        multiplelightingShader.setVector3f("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-        multiplelightingShader.setVector3f("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setFloat("pointLights[2].constant", 1.0f);
-        multiplelightingShader.setFloat("pointLights[2].linear", 0.09f);
-        multiplelightingShader.setFloat("pointLights[2].quadratic", 0.032f);
-        // point light 4
-        multiplelightingShader.setVector3f("pointLights[3].light_pos", testlums4);
-        multiplelightingShader.setVector3f("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        multiplelightingShader.setVector3f("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-        multiplelightingShader.setVector3f("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setFloat("pointLights[3].constant", 1.0f);
-        multiplelightingShader.setFloat("pointLights[3].linear", 0.09f);
-        multiplelightingShader.setFloat("pointLights[3].quadratic", 0.032f);
-
-        // spotLight
-        //multiplelightingShader.setVector3f("spotLight.light_pos", camera.Position);
-        //multiplelightingShader.setVector3f("spotLight.direction", camera.Front);
-
-        glm::vec3 testspotpos = glm::vec3(0.0, 1.0, -2.0);
-        glm::vec3 testspotdir = glm::vec3(0.0, -1.0, 0.0);
-        multiplelightingShader.setVector3f("spotLight.light_pos", testspotpos);
-        multiplelightingShader.setVector3f("spotLight.direction", testspotdir);
-
-        multiplelightingShader.setVector3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        multiplelightingShader.setVector3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setVector3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        multiplelightingShader.setFloat("spotLight.constant", 1.0f);
-        multiplelightingShader.setFloat("spotLight.linear", 0.09f);
-        multiplelightingShader.setFloat("spotLight.quadratic", 0.032f);
-        multiplelightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        multiplelightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-        //poolGame.update(deltaTime);
-        //poolGame.draw(multiplelightingShader);
-
-
-		room.drawRoom(simpleShader, windowShader, perspective, view, camera.Position);
+        
+		setupLightShader(multiplelightingShader, perspective, view, camera.Position);
+		room.poolGame.draw(multiplelightingShader);
+		
+		
+		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -470,8 +322,9 @@ int main(int argc, char* argv[])
 		skybox.bindTexture();
 		skybox.draw();
 		glDepthFunc(GL_LESS);
-
-		room.drawMirroredRoom(simpleShader, windowShader, mirrorShader, perspective, view, camera.Position);
+		
+		room.drawMirroredRoom(multiplelightingShader, windowShader, mirrorShader, perspective, view, camera.Position);
+		
 
 		glfwSwapBuffers(window);
 	}
@@ -486,8 +339,91 @@ int main(int argc, char* argv[])
 }
 
 
+std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos) {
+	std::vector<glm::mat4> shadowTransforms = {
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+	};
+	return shadowTransforms;
+}
 
 
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
+	multiplelightingShader.use();	
+	multiplelightingShader.setInteger("depthMap", 2);	
+	multiplelightingShader.setMatrix4("V", view);
+	multiplelightingShader.setMatrix4("P", perspective);
+	multiplelightingShader.setVector3f("u_view_pos", position);
+	multiplelightingShader.setVector3f("lightPos", glm::vec3(0.0f, 1.5f, 0.0f)); // TODO : Light pos
+	// multiplelightingShader.setFloat("shininess", 32.0f);
+
+	glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
+	glm::vec3 testlums2 = glm::vec3(-0.5, 1.5, 0.0);
+	glm::vec3 testlums3 = glm::vec3(-1.0, 1.5, 0.0);
+	glm::vec3 testlums4 = glm::vec3(1.0, 1.5, 0.0);
+	glm::vec3 testdir = glm::vec3(0.0, 0.5, 2.0);
+
+	// directional light
+	multiplelightingShader.setVector3f("dirLight.direction", testdir);
+	multiplelightingShader.setVector3f("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+	multiplelightingShader.setVector3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
+	// point light 1
+	multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
+	multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+	multiplelightingShader.setVector3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setFloat("pointLights[0].constant", 1.0f);
+	multiplelightingShader.setFloat("pointLights[0].linear", 0.09f);
+	multiplelightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+	/*
+	// point light 2
+	multiplelightingShader.setVector3f("pointLights[1].light_pos", testlums2);
+	multiplelightingShader.setVector3f("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+	multiplelightingShader.setVector3f("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setFloat("pointLights[1].constant", 1.0f);
+	multiplelightingShader.setFloat("pointLights[1].linear", 0.09f);
+	multiplelightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+	// point light 3
+	multiplelightingShader.setVector3f("pointLights[2].light_pos", testlums3);
+	multiplelightingShader.setVector3f("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+	multiplelightingShader.setVector3f("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setFloat("pointLights[2].constant", 1.0f);
+	multiplelightingShader.setFloat("pointLights[2].linear", 0.09f);
+	multiplelightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+	// point light 4
+	multiplelightingShader.setVector3f("pointLights[3].light_pos", testlums4);
+	multiplelightingShader.setVector3f("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+	multiplelightingShader.setVector3f("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setFloat("pointLights[3].constant", 1.0f);
+	multiplelightingShader.setFloat("pointLights[3].linear", 0.09f);
+	multiplelightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+	*/
+	// spotLight
+	//multiplelightingShader.setVector3f("spotLight.light_pos", camera.Position);
+	//multiplelightingShader.setVector3f("spotLight.direction", camera.Front);
+
+	glm::vec3 testspotpos = glm::vec3(0.0, 1.0, -2.0);
+	glm::vec3 testspotdir = glm::vec3(0.0, -1.0, 0.0);
+	multiplelightingShader.setVector3f("spotLight.light_pos", testspotpos);
+	multiplelightingShader.setVector3f("spotLight.direction", testspotdir);
+
+	multiplelightingShader.setVector3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+	multiplelightingShader.setVector3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setVector3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+	multiplelightingShader.setFloat("spotLight.constant", 1.0f);
+	multiplelightingShader.setFloat("spotLight.linear", 0.09f);
+	multiplelightingShader.setFloat("spotLight.quadratic", 0.032f);
+	multiplelightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+	multiplelightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+}
 
 
 
@@ -564,48 +500,4 @@ void renderCube()
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
-}
-
-
-
-
-// utility function for loading a 2D texture from file
-// ---------------------------------------------------
-
-
-unsigned int loadTexture(char const * path)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureID;
 }
