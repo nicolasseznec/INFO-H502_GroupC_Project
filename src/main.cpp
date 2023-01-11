@@ -165,6 +165,15 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
+	Mesh wall_mesh = Mesh(PATH_TO_OBJECTS "/plane.obj", true);
+	// Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/wall_normalMap.jpg"));
+	Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/mud.jpg"));
+	wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.1, 0.0f));
+	// wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f));
+	wall.transform = glm::rotate(wall.transform, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+	// wall.transform = glm::rotate(wall.transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	// wall.transform = glm::rotate(wall.transform, glm::radians(23.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	// Scene
 	RoomScene room(skybox);
 
@@ -178,7 +187,7 @@ int main(int argc, char* argv[])
 	// lighting info
     // -------------
 	glm::vec3 lightPos(0.0f, 2.0f, 0.0f); 
-	glm::vec3 light_pos = glm::vec3(0.0, 2.5, 0.0);  // Unused
+	glm::vec3 light_pos = glm::vec3(0.5, 1.5, 0.0);  // Unused
 	
 
 	//Rendering
@@ -205,6 +214,16 @@ int main(int argc, char* argv[])
 	windowShader.use();
 	windowShader.setFloat("refractionIndice", 1.0);
 
+	simpleShader.use();
+	simpleShader.setFloat("shininess", 32.0f);
+	simpleShader.setVector3f("materialColour", materialColour);
+	simpleShader.setVector3f("light.light_pos", light_pos);
+	simpleShader.setFloat("light.ambient_strength", ambient);
+	simpleShader.setFloat("light.diffuse_strength", diffuse);
+	simpleShader.setFloat("light.specular_strength", specular);
+	simpleShader.setFloat("light.constant", 1.0);
+	simpleShader.setFloat("light.linear", 0.14);
+	simpleShader.setFloat("light.quadratic", 0.07);
 
 	// 0. create depth cubemap transformation matrices
 	// -----------------------------------------------
@@ -329,6 +348,12 @@ int main(int argc, char* argv[])
         glCullFace(GL_BACK);		
 		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
 		glDisable(GL_CULL_FACE);
+
+		simpleShader.use();
+		simpleShader.setMatrix4("V", view);
+		simpleShader.setMatrix4("P", perspective);
+		simpleShader.setVector3f("u_view_pos", camera.Position);
+		wall.draw(simpleShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
