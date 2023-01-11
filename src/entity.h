@@ -19,12 +19,9 @@ class Entity
 public:
     glm::mat4 transform = glm::mat4(1.0);
 
-    // Texture texture;
     std::vector<Texture> textures;
     Mesh* model;
 
-    // TODO : proper model and texture management
-    // Entity(Mesh& model, Texture texture) : texture(texture) {
     Entity(Mesh& model, Texture texture) {
         this->model = &model;
         textures.push_back(texture);
@@ -37,35 +34,34 @@ public:
         textures.push_back(normalMap);
     }
 
-
     void draw(Shader& shader) {
         if (!model) return;
+        bool useNormalMap = false;
 
-        // If (Shader.current != shader.ID) Either error, return, or shader.use()
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            Texture& texture = textures[i];
 
-        /* TODO: with multiple textures:
-        for each texture, depending on its type, choose right uniform name (e.g. texture_color_i, texture_normal_i, ...)
-        shader.setInteger("name", i)
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, textures[i]->ID);
-        */
+            glActiveTexture(GL_TEXTURE0 + i); 
+            glBindTexture(GL_TEXTURE_2D, texture.ID);
 
-        shader.setInteger("u_texture", 0);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0) (Could be done before the loop)
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[0].ID);
-		
-        // Just to test, TODO : generic approach 
-        if (textures.size() == 2) {
-            shader.setInteger("u_normalMap", 1);  // Set the texture unit to use (set with GL_TEXTURE0, GL_TEXTURE1, ...) (by default 0) (Could be done before the loop)
-		    glActiveTexture(GL_TEXTURE1);
-		    glBindTexture(GL_TEXTURE_2D, textures[1].ID);
+            if (texture.type == COLOR) {
+                shader.setInteger("u_texture", i);
+            }
+            else if (texture.type == NORMAL) {
+                useNormalMap = true;
+                shader.setBool("useNormalMap", true);
+                shader.setInteger("u_normalMap", i);
+            }
         }
 
         shader.setMatrix4("M", transform);
 		shader.setMatrix4("itM", glm::transpose(glm::inverse(transform)));
 		model->draw();
+        
+        if (useNormalMap) {
+            shader.setBool("useNormalMap", false); // reset useNormalMap
+        }
 	}
-
 };
 
 #endif /* ENTITY_H */

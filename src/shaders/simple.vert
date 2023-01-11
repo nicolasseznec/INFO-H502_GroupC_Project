@@ -27,12 +27,5 @@ void main() {
     vec3 T = normalize(vec3(M * vec4(tangent, 0.0)));
     vec3 B = normalize(vec3(M * vec4(bitangent, 0.0)));
     vec3 N = normalize(vec3(M * vec4(normal, 0.0)));
-    // vec3 T = normalize(vec3(itM * vec4(tangent, 0.0)));
-    // vec3 B = normalize(vec3(itM * vec4(bitangent, 0.0)));
-    // vec3 N = normalize(vec3(itM * vec4(normal, 0.0)));
-    // v_normal = vec3(0.0, 0.0, -2.0);
-    // v_normal = vec3(0.0, 0.0, 0.0);
-    // v_normal = tangent;
-
     v_TBN = mat3(T, B, N);
 }

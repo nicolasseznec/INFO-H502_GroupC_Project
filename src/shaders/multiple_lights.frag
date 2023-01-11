@@ -7,9 +7,7 @@ precision mediump float;
 in vec3 v_frag_coord;
 in vec3 v_normal;
 in vec2 v_tex;
-
-uniform vec3 u_view_pos;
-
+in mat3 v_TBN;
 
 struct DirLight {
     vec3 direction;
@@ -49,15 +47,20 @@ struct SpotLight {
 #define NR_POINT_LIGHTS 1
 
 
+uniform vec3 u_view_pos;
 
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform vec3 materialColour;
+uniform float shininess;
+
 
 uniform sampler2D u_texture;
 
-uniform float shininess;
+uniform sampler2D u_normalMap;
+uniform bool useNormalMap;
+
 
 //----------------------------------
 // Shadow related
@@ -88,7 +91,18 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 void main()
 {    
     // properties
-    vec3 norm = normalize(v_normal);
+    vec3 norm;
+    if (useNormalMap) {
+        norm = texture(u_normalMap, v_tex).xyz * 2.0 - 1.0;
+        norm = normalize(v_TBN * norm);
+
+        // FragColor = vec4(norm * 0.5 + 0.5, 1.0);
+        // return;
+    }
+    else {
+        norm = normalize(v_normal);
+    }
+    
     vec3 viewDir = normalize(u_view_pos - v_frag_coord);
     
     // == =====================================================

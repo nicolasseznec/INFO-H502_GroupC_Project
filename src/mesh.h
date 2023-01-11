@@ -87,7 +87,6 @@ public:
 				v1.Position = positions.at(std::stof(p) - 1);
 				v1.Normal = normals.at(std::stof(n) - 1);
 				v1.Texture = textures.at(std::stof(t) - 1);
-				// vertices.push_back(v1);
 
 				//for face 2
 				Vertex v2;
@@ -104,7 +103,6 @@ public:
 				v2.Position = positions.at(std::stof(p) - 1);
 				v2.Normal = normals.at(std::stof(n) - 1);
 				v2.Texture = textures.at(std::stof(t) - 1);
-				// vertices.push_back(v2);
 
 				//for face 3
 				Vertex v3;
@@ -117,40 +115,24 @@ public:
 
 				n = f3.substr(0, f3.find("/"));
 
-
 				v3.Position = positions.at(std::stof(p) - 1);
 				v3.Normal = normals.at(std::stof(n) - 1);
 				v3.Texture = textures.at(std::stof(t) - 1);
-				// vertices.push_back(v3);
 
 				if (useNormalMap) {
-					// TODO : compute tangent and bitangent from v1, v2, v3
-					glm::vec3 tangent, bitangent;
-
-					glm::vec3 edge1 = v2.Position - v1.Position;
-					glm::vec3 edge2 = v3.Position - v1.Position;
+					glm::vec3 deltaPos1 = v2.Position - v1.Position;
+					glm::vec3 deltaPos2 = v3.Position - v1.Position;
 					glm::vec2 deltaUV1 = v2.Texture - v1.Texture;
 					glm::vec2 deltaUV2 = v3.Texture - v1.Texture;
 
 					float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-					tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-					tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-					tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-
-					bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-					bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-					bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+					glm::vec3 tangent = f * (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y);
+					glm::vec3 bitangent = f * (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x);
 
 					v1.Tangent = v2.Tangent = v3.Tangent = tangent;
 					v1.Bitangent = v2.Bitangent = v3.Bitangent = bitangent;
-					// std::cout << tangent.x << ", " << tangent.y << ", " << tangent.z << std::endl;
-					// std::cout << bitangent.x << ", " << bitangent.y << ", " << bitangent.z << std::endl;
-					std::cout << v1.Tangent.x << ", " << v1.Tangent.y << ", " << v1.Tangent.z << std::endl;
-					std::cout << v2.Tangent.x << ", " << v2.Tangent.y << ", " << v2.Tangent.z << std::endl;
-					std::cout << v3.Tangent.x << ", " << v3.Tangent.y << ", " << v3.Tangent.z << std::endl;
-					// std::cout << bitangent.x << ", " << bitangent.y << ", " << bitangent.z << std::endl;
-				}	
+				}
 				
 				vertices.push_back(v1);
 				vertices.push_back(v2);
@@ -166,9 +148,7 @@ public:
 
 		numVertices = vertices.size();
 
-        // makeMesh();
-        // makeMesh2(useNormalMap);
-        makeMesh3();
+        makeMesh();
 	}
 
     void draw() {
@@ -179,100 +159,6 @@ public:
 
 private:
 	void makeMesh() {
-		float* data = new float[8 * numVertices];
-		for (int i = 0; i < numVertices; i++) {
-			Vertex v = vertices.at(i);
-			data[i * 8] = v.Position.x;
-			data[i * 8 + 1] = v.Position.y;
-			data[i * 8 + 2] = v.Position.z;
-
-			data[i * 8 + 3] = v.Texture.x;
-			data[i * 8 + 4] = v.Texture.y;
-
-			data[i * 8 + 5] = v.Normal.x;
-			data[i * 8 + 6] = v.Normal.y;
-			data[i * 8 + 7] = v.Normal.z;
-		}
-
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-
-		//define VBO and VAO as active buffer and active vertex array
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
-
-		// TODO : find a proper way to set the attribute locations
-		// auto att_pos = glGetAttribLocation(shader.ID, "position");
-		auto att_pos = 0;
-		glEnableVertexAttribArray(att_pos);
-		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)0);
-		// glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
-
-        // auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
-        auto att_tex = 1;
-        glEnableVertexAttribArray(att_tex);
-        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        // glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
-		
-		// auto att_norm = glGetAttribLocation(shader.ID, "normal");
-		auto att_norm = 2;
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-		// glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-		
-		//desactive the buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-		delete[] data;
-
-		// std::cout << "Made model with " << numVertices << " vertices" << std::endl;
-	}
-
-	void makeMesh2(bool useNormalMap) {
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-
-		//define VBO and VAO as active buffer and active vertex array
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, &vertices[0], GL_STATIC_DRAW);
-
-		int att_pos = 0;
-        int att_tex = 1;
-		int att_norm = 2;
-		int att_tangent = 3;
-		int att_bitangent = 4;
-
-		glEnableVertexAttribArray(att_pos);
-		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
-
-        glEnableVertexAttribArray(att_tex);
-        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
-		
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_tangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_bitangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-		
-		if (useNormalMap) {
-			for (int i = 0; i<6; i++) {
-				float value = *((float*)&vertices[i]);
-				// float value = vertices[i].Tangent.z;
-				std::cout << value << std::endl;
-			}
-		}
-
-		//desactive the buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-	void makeMesh3() {
 		int size = 14;
 		float* data = new float[size * numVertices];
 		for (int i = 0; i < numVertices; i++) {
@@ -305,32 +191,24 @@ private:
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
 
-		// TODO : find a proper way to set the attribute locations
-		// auto att_pos = glGetAttribLocation(shader.ID, "position");
 		auto att_pos = 0;
+        auto att_tex = 1;
+		auto att_norm = 2;
+		auto att_tangent = 3;
+		auto att_bitangent = 4;
+
 		glEnableVertexAttribArray(att_pos);
 		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, size * sizeof(float), (void*)0);
-		// glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
 
-        // auto att_tex = glGetAttribLocation(shader.ID, "tex_coords");
-        auto att_tex = 1;
         glEnableVertexAttribArray(att_tex);
         glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, size * sizeof(float), (void*)(3 * sizeof(float)));
-        // glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
-		
-		// auto att_norm = glGetAttribLocation(shader.ID, "normal");
-		auto att_norm = 2;
+
 		glEnableVertexAttribArray(att_norm);
 		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, size * sizeof(float), (void*)(5 * sizeof(float)));
-		// glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
-		auto att_tangent = 3;
         glEnableVertexAttribArray(att_tangent);
         glVertexAttribPointer(att_tangent, 3, GL_FLOAT, false, size * sizeof(float), (void*)(8 * sizeof(float)));
-        // glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
-		
-		// auto att_norm = glGetAttribLocation(shader.ID, "normal");
-		auto att_bitangent = 4;
+
 		glEnableVertexAttribArray(att_bitangent);
 		glVertexAttribPointer(att_bitangent, 3, GL_FLOAT, false, size * sizeof(float), (void*)(11 * sizeof(float)));
 		
@@ -341,6 +219,43 @@ private:
 
 		// std::cout << "Made model with " << numVertices << " vertices" << std::endl;
 	}
+
+	/*
+	void makeMesh2(bool useNormalMap) {
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+
+		//define VBO and VAO as active buffer and active vertex array
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, &vertices[0], GL_STATIC_DRAW);
+
+		int att_pos = 0;
+        int att_tex = 1;
+		int att_norm = 2;
+		int att_tangent = 3;
+		int att_bitangent = 4;
+
+		glEnableVertexAttribArray(att_pos);
+		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
+
+        glEnableVertexAttribArray(att_tex);
+        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
+		
+		glEnableVertexAttribArray(att_norm);
+		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+		glEnableVertexAttribArray(att_norm);
+		glVertexAttribPointer(att_tangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+
+		glEnableVertexAttribArray(att_norm);
+		glVertexAttribPointer(att_bitangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
+		//desactive the buffer
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	*/
 };
 
 #endif /* MESH_H */

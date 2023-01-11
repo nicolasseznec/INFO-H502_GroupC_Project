@@ -46,6 +46,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	// glfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifndef NDEBUG
 	//create a debug context to help with Debugging
@@ -86,6 +87,7 @@ int main(int argc, char* argv[])
 		throw std::runtime_error("Failed to initialize GLAD");
 	}
 
+	// glEnable(GL_MULTISAMPLE); 
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -165,12 +167,12 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
-	Mesh wall_mesh = Mesh(PATH_TO_OBJECTS "/plane.obj", true);
+	// Mesh wall_mesh = Mesh(PATH_TO_OBJECTS "/plane.obj", true);
 	// Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/wall_normalMap.jpg"));
-	Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/mud.jpg"));
-	wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.1, 0.0f));
+	// Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/mud.jpg"));
+	// wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.1, 0.0f));
 	// wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f));
-	wall.transform = glm::rotate(wall.transform, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+	// wall.transform = glm::rotate(wall.transform, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 	// wall.transform = glm::rotate(wall.transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	// wall.transform = glm::rotate(wall.transform, glm::radians(23.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -349,11 +351,11 @@ int main(int argc, char* argv[])
 		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
 		glDisable(GL_CULL_FACE);
 
-		simpleShader.use();
-		simpleShader.setMatrix4("V", view);
-		simpleShader.setMatrix4("P", perspective);
-		simpleShader.setVector3f("u_view_pos", camera.Position);
-		wall.draw(simpleShader);
+		// simpleShader.use();
+		// simpleShader.setMatrix4("V", view);
+		// simpleShader.setMatrix4("P", perspective);
+		// simpleShader.setVector3f("u_view_pos", camera.Position);
+		// wall.draw(simpleShader);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -394,6 +396,7 @@ std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 li
 
 void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane) {
 	multiplelightingShader.use();	
+	multiplelightingShader.setBool("useNormalMap", false);
 	multiplelightingShader.setInteger("depthMap", 2);	
 	multiplelightingShader.setFloat("far_plane", far_plane);	
 	multiplelightingShader.setMatrix4("V", view);
