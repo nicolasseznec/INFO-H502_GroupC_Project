@@ -65,7 +65,7 @@ public:
         
         // TODO : handle mirror frame + mirror plane in mirror.h
         Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
-	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.7f));
+	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.72f));
         objects.push_back(mirror_frame);
 
         // Transforms
@@ -73,7 +73,7 @@ public:
             // object.transform = this->transform * object.transform;
         // }
         // window.transform = this->transform;
-        mirror.transform = this->transform * glm::translate(mirror.transform, glm::vec3(0.0f, 2.0f, -1.7f));
+        mirror.transform = this->transform * glm::translate(mirror.transform, glm::vec3(0.0f, 2.0f, -1.725f));
     }
 
 
@@ -98,11 +98,15 @@ public:
     }
 
     void drawDepthMap(Shader& depthShader) {
+		glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         poolGame.draw(depthShader);
-        // for (Entity& object : objects) {
-        for (int i = 1; i < objects.size(); i++) {
-            objects.at(i).draw(depthShader);
+
+        glCullFace(GL_FRONT);
+        for (Entity& object : objects) {
+            object.draw(depthShader);
         }
+        glDisable(GL_CULL_FACE);
     }
 
     void drawMirroredRoom(Shader& shader, Shader& windowShader, Shader& mirrorShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {

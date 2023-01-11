@@ -108,6 +108,7 @@ void main()
     // FragColor = vec4(result, 1.0);
     
     float shadow = ShadowCalculation(v_frag_coord) * 0.5;
+    // float shadow = ShadowCalculation(v_frag_coord);
     FragColor = vec4(result * (1.0 - shadow), 1.0);
     // result = vec3(1.0, 1.0, 1.0)
     // FragColor = vec4(result * shadow, 1.0);
@@ -213,19 +214,27 @@ float ShadowCalculation(vec3 fragPos)
     // shadow /= (samples * samples * samples);
 
     float shadow = 0.0;
-    float bias = 0.15;
-    int samples = 20;
-    float viewDistance = length(u_view_pos - fragPos);
-    float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    // float bias = 0.15;
+    // int samples = 20;
+    // float viewDistance = length(u_view_pos - fragPos);
+    // float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
     
-    for(int i = 0; i < samples; i++)
-    {
-        float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-        closestDepth *= far_plane;   // undo mapping [0;1]
-        if(currentDepth - bias > closestDepth)
-        shadow += 1.0;
-    }
-    shadow /= float(samples);
+    // for(int i = 0; i < samples; i++)
+    // {
+    //     float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+    //     closestDepth *= far_plane;   // undo mapping [0;1]
+    //     if(currentDepth - bias > closestDepth)
+    //     shadow += 1.0;
+    // }
+    // shadow /= float(samples);
+
+
+    float closestDepth = texture(depthMap, fragToLight).r;
+    closestDepth *= far_plane;
+    float bias = 0.05; 
+    // float bias = 0.005; 
+    shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
 
     // display closestDepth as debug (to visualize depth cubemap)
     // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);

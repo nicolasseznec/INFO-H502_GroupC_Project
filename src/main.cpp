@@ -208,7 +208,8 @@ int main(int argc, char* argv[])
 
 	// 0. create depth cubemap transformation matrices
 	// -----------------------------------------------
-	float near_plane = 1.0f;
+	// float near_plane = 1.0f;
+	float near_plane = 0.1f;
 	float far_plane = 25.0f;
 	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
 	std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
@@ -234,6 +235,31 @@ int main(int argc, char* argv[])
 	double prevTime = 0;
 	double deltaTime = 0;
 
+
+	// glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	// glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	// glClear(GL_DEPTH_BUFFER_BIT);
+	simpleDepthShader.use();
+	for (unsigned int i = 0; i < 6; ++i)
+		simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+	simpleDepthShader.setFloat("far_plane", far_plane);
+	simpleDepthShader.setVector3f("lightPos", lightPos);
+
+	// glm::mat4 model = glm::mat4(1.0f);
+	// model = glm::scale(model, glm::vec3(5.0f));
+	// simpleDepthShader.setMatrix4("M", model);
+	// glDisable(GL_CULL_FACE);
+	// renderCube();
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_BACK);
+
+
+	// room.poolGame.draw(simpleDepthShader);
+	// room.drawDepthMap(simpleDepthShader);
+	
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	glfwSwapInterval(1);
 	while (!glfwWindowShouldClose(window)) {
 		double now = glfwGetTime();
@@ -258,26 +284,14 @@ int main(int argc, char* argv[])
 
         // 1. render scene to depth cubemap
         // --------------------------------
+
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
         simpleDepthShader.use();
-        for (unsigned int i = 0; i < 6; ++i)
-            simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-        simpleDepthShader.setFloat("far_plane", far_plane);
-        simpleDepthShader.setVector3f("lightPos", lightPos);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(5.0f));
-        simpleDepthShader.setMatrix4("M", model);
-        // glDisable(GL_CULL_FACE);
-        renderCube();
-        // glEnable(GL_CULL_FACE);
-        // glCullFace(GL_BACK);
-
-		// room.poolGame.draw(simpleDepthShader);
 		room.drawDepthMap(simpleDepthShader);
-        
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -285,19 +299,20 @@ int main(int argc, char* argv[])
         // -------------------------
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shadowShader.use();
 
-        // set lighting uniforms
-        shadowShader.setVector3f("lightPos", lightPos);
-        shadowShader.setVector3f("viewPos", camera.Position);
-        shadowShader.setInteger("shadows", shadows); // enable/disable shadows by pressing 'SPACE'
-        shadowShader.setFloat("far_plane", far_plane);
-        shadowShader.setMatrix4("V", view);
-        shadowShader.setMatrix4("P", perspective);
+		// shadowShader.use();
+		// // set lighting uniforms
+		// shadowShader.setVector3f("lightPos", lightPos);
+		// shadowShader.setVector3f("viewPos", camera.Position);
+		// shadowShader.setInteger("shadows", shadows); // enable/disable shadows by pressing 'SPACE'
+		// shadowShader.setFloat("far_plane", far_plane);
+		// shadowShader.setMatrix4("V", view);
+		// shadowShader.setMatrix4("P", perspective);
 
 		glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 
+		/*
         glm::mat4 modele = glm::mat4(1.0f);
         modele = glm::scale(modele, glm::vec3(5.0f));
         shadowShader.setMatrix4("M", modele);
@@ -306,13 +321,14 @@ int main(int argc, char* argv[])
         renderCube();
         shadowShader.setInteger("reverse_normals", 0); // and of course disable it
         // glEnable(GL_CULL_FACE);
-
+		*/
         
 		setupLightShader(multiplelightingShader, perspective, view, camera.Position, lightPos, far_plane);
-		room.poolGame.draw(multiplelightingShader);
-		
-		
+
+		glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);		
 		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
+		glDisable(GL_CULL_FACE);
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -325,7 +341,6 @@ int main(int argc, char* argv[])
 		
 		room.drawMirroredRoom(multiplelightingShader, windowShader, mirrorShader, perspective, view, camera.Position);
 		
-
 		glfwSwapBuffers(window);
 	}
 	
