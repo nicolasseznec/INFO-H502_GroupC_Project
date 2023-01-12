@@ -24,7 +24,7 @@ class RoomScene
 public:
     // Meshes
     Mesh room_mesh = Mesh(PATH_TO_OBJECTS "/room/room.obj", true);
-    Mesh carpet_mesh = Mesh(PATH_TO_OBJECTS "/room/carpet.obj");
+    Mesh carpet_mesh = Mesh(PATH_TO_OBJECTS "/room/carpet.obj", true);
     Mesh bench_mesh = Mesh(PATH_TO_OBJECTS "/room/bench.obj");
     Mesh shelf_mesh = Mesh(PATH_TO_OBJECTS "/room/shelf.obj");
     Mesh mirror_frame_mesh = Mesh(PATH_TO_OBJECTS "/room/mirror_frame.obj");
@@ -54,9 +54,9 @@ public:
         window(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"), &skybox),
         mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG"))
     {
-        // objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap_2.jpg"), Texture(PATH_TO_TEXTURE "/room/room_normalmap.jpg")));
-        objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap_2.jpg")));
-        objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg")));
+        objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/room_normalmap.jpg")));
+        // objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg")));
+        objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/carpet_normalmap.jpg")));
         objects.push_back(Entity(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg")));
 
         Entity shelf(shelf_mesh, Texture(PATH_TO_TEXTURE "/room/Shelf.jpg"));

@@ -32,8 +32,10 @@ class PoolGame
 public:
     Mesh tableMesh;
     Mesh ballMesh;
+    Mesh cueMesh = Mesh(PATH_TO_OBJECTS "/pool_cue.obj");
 
     Entity table;
+    Entity cue;
     std::vector<PoolBall> balls;
     std::vector<PoolPocket> pockets;
 
@@ -47,7 +49,10 @@ public:
         const char* tableTexturePath,
         const char* ballMeshPath,
         std::string ballTexturePath
-        ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
+        ) : 
+        tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath),
+        cue(cueMesh, Texture(PATH_TO_TEXTURE "/pool_table/cue_colormap.jpg"))
+         {
         
         for (int i = 0; i < 16; i++) {
             std::stringstream ss;
@@ -55,6 +60,8 @@ public:
             Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
             balls.push_back(PoolBall(ballMesh, texture));
         }
+
+        cue.transform  = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.5f, -1.0f));
 
         setupPockets();
         resetGame();
@@ -99,6 +106,7 @@ public:
     // TODO : separate shaders for table and balls ?
     void draw(Shader& shader) {
         table.draw(shader);
+        cue.draw(shader);
         
         for (PoolBall& ball : balls) {
             ball.draw(shader);
