@@ -21,6 +21,8 @@ public:
 	bool cursorKeyPressed = false;
 	bool cursorEnabled = false;
 
+	bool cueStatePressed = false;
+
 	bool firstMouse = true;
 	double lastMouseX = 0;
 	double lastMouseY = 0;
@@ -95,11 +97,36 @@ public:
 	void processPoolInput(GLFWwindow* window, double deltaTime) {
 		if (!poolGame) return;
 
-		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+		// Reset cue ball with U and the whole game with O
+		if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
 			poolGame->resetCueBall();
-
 		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
 			poolGame->resetGame();
+
+		// Enable/Disable cue with H
+		if (!cueStatePressed && glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
+			poolGame->switchCueState();
+			cueStatePressed = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_H) == GLFW_RELEASE)
+			cueStatePressed = false;
+		
+
+		// Turn cue with J & L
+		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+			poolGame->turnCue(-1, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+			poolGame->turnCue(1, deltaTime);
+
+		// Choose force of the shot with K & I
+		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+			poolGame->moveCue(1, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+			poolGame->moveCue(-1, deltaTime);
+		
+		// Shoot with SPACE
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+			poolGame->shootCue();
 	}
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)

@@ -77,7 +77,7 @@ public:
     void update(float deltaTime) {
         Velocity += Acceleration * deltaTime;
         checkStopThreshold();
-        // Acceleration =  Velocity * -FRICTION/Mass;
+        Acceleration =  Velocity * -FRICTION/Mass;
         Position += Velocity * deltaTime;
 
         if (!enteredPocket) {
