@@ -35,6 +35,7 @@ public:
     PoolGame poolGame = PoolGame(
 		PATH_TO_OBJECTS "/pool_table.obj",
 		PATH_TO_TEXTURE "/pool_table/colorMap.png",
+		// PATH_TO_TEXTURE "/pool_table/colorMap.jpg",
 		PATH_TO_OBJECTS "/pool_ball.obj",
 		PATH_TO_TEXTURE "/pool_balls/"
 	);

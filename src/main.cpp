@@ -153,6 +153,9 @@ int main(int argc, char* argv[])
     Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
                              PATH_TO_SHADERS "/point_shadows_depth.frag",
                              PATH_TO_SHADERS "/point_shadows_depth.gs");
+	
+	Shader imageShader(PATH_TO_SHADERS "/image.vert",
+				  	   PATH_TO_SHADERS "/image.frag");
 
 	// Skybox
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
@@ -279,7 +282,7 @@ int main(int argc, char* argv[])
 	// room.drawDepthMap(simpleDepthShader);
 	
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	inputHandler.setupControls();
 
 	glfwSwapInterval(1);
 	while (!glfwWindowShouldClose(window)) {
@@ -368,6 +371,8 @@ int main(int argc, char* argv[])
 		
 		room.drawMirroredRoom(multiplelightingShader, windowShader, mirrorShader, perspective, view, camera.Position);
 		
+		inputHandler.drawControls(imageShader);
+
 		glfwSwapBuffers(window);
 	}
 	

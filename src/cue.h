@@ -17,7 +17,7 @@
 const float COOLDOWN = 5.0f;
 const float HIT_DURATION = 0.1f;
 
-const float ROTATE_SPEED = 60.0f;
+const float ROTATE_SPEED = 50.0f;
 const float DISTANCE_SPEED = 0.3f;
 const float DISTANCE_MIN = 0.05f;
 const float DISTANCE_MAX = 0.3f;

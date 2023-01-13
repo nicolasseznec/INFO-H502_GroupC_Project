@@ -35,6 +35,7 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+
         stbi_set_flip_vertically_on_load(true);
         int imWidth, imHeight, imNrChannels;
         unsigned char* data = stbi_load(path, &imWidth, &imHeight, &imNrChannels, 0);
@@ -51,7 +52,7 @@ public:
 
             // std::cout << "Loaded texture : " << path << " | " << imWidth << " * " << imHeight << std::endl;
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // in case the texture is in non-power-of-two
-            glTexImage2D(GL_TEXTURE_2D, 0, format, imWidth, imHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, format, imWidth, imHeight, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         else {

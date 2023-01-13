@@ -1,10 +1,12 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
 #include "billiard.h"
+#include "shader.h"
 
 
 class InputHandler
@@ -30,6 +32,17 @@ public:
 	Camera* camera;
 	PoolGame* poolGame;
 
+	bool displayControls = true;
+	bool controlsPressed = false;
+
+	GLuint controlsVAO;
+	GLuint controlsTex;
+
+	void setupControls() {
+		controlsTex = Texture(PATH_TO_TEXTURE "/controls.png").ID;
+		controlsVAO = Mesh(PATH_TO_OBJECTS "/plane.obj").VAO;
+	}
+
 	void processInput(GLFWwindow* window, double deltaTime) {
 		// Window
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -46,6 +59,15 @@ public:
 			cursorKeyPressed = false;
 		}
 		
+		// Press F1 to display/hide controls
+		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS && !controlsPressed) {
+			controlsPressed = true;
+			displayControls = !displayControls;
+		}
+		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE) {
+			controlsPressed = false;
+		}
+
 		processCameraInput(window, deltaTime);
 		processPoolInput(window, deltaTime);
 	}
@@ -165,6 +187,27 @@ public:
 			camera->ProcessSpeedScroll(yoffset);
 			break;
 		}
+	}
+
+	void drawControls(Shader& shader) {
+		if (!displayControls) return;
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		
+		shader.use();
+		glBindVertexArray(controlsVAO);
+		glActiveTexture(GL_TEXTURE0); 
+		glBindTexture(GL_TEXTURE_2D, controlsTex);
+		shader.setInteger("u_texture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		// glBindFramebuffer(GL_READ_FRAMEBUFFER, controlsFBO);
+		// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		// glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		// glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	}
 };
 
