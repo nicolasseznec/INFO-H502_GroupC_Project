@@ -200,14 +200,6 @@ public:
 		glBindTexture(GL_TEXTURE_2D, controlsTex);
 		shader.setInteger("u_texture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-		// glBindFramebuffer(GL_READ_FRAMEBUFFER, controlsFBO);
-		// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		// glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-		// glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-		// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	}
 };
 
