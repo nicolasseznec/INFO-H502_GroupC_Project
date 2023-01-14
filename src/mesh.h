@@ -124,8 +124,10 @@ public:
 					glm::vec3 deltaPos2 = v3.Position - v1.Position;
 					glm::vec2 deltaUV1 = v2.Texture - v1.Texture;
 					glm::vec2 deltaUV2 = v3.Texture - v1.Texture;
-
-					float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+					
+					float d = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
+					if (d == 0.0f) d = 1.0f;
+					float f = 1.0f / d;
 
 					glm::vec3 tangent = f * (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y);
 					glm::vec3 bitangent = f * (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x);

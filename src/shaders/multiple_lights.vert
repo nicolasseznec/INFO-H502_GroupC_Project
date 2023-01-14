@@ -24,8 +24,8 @@ void main() {
     v_frag_coord = frag_coord.xyz;
     v_tex = tex_coords;
 
-    vec3 T = normalize(vec3(M * vec4(tangent, 0.0)));
-    vec3 B = normalize(vec3(M * vec4(bitangent, 0.0)));
+    vec3 T = length(tangent) > 0.0 ? normalize(vec3(M * vec4(tangent, 0.0))) : vec3(0.0);
+    vec3 B = length(bitangent) > 0.0 ? normalize(vec3(M * vec4(bitangent, 0.0))) : vec3(0.0);
     vec3 N = normalize(vec3(M * vec4(normal, 0.0)));
     v_TBN = mat3(T, B, N);
 }

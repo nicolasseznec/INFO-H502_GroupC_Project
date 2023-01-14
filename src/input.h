@@ -32,7 +32,7 @@ public:
 	Camera* camera;
 	PoolGame* poolGame;
 
-	bool displayControls = true;
+	bool displayControls = false;
 	bool controlsPressed = false;
 
 	GLuint controlsVAO;
@@ -41,6 +41,7 @@ public:
 	void setupControls() {
 		controlsTex = Texture(PATH_TO_TEXTURE "/controls.png").ID;
 		controlsVAO = Mesh(PATH_TO_OBJECTS "/plane.obj").VAO;
+		std::cout << "----------------------------\nPress F1 to display controls" << std::endl;
 	}
 
 	void processInput(GLFWwindow* window, double deltaTime) {
