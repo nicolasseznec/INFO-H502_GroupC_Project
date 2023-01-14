@@ -7,6 +7,7 @@ precision mediump float;
 in vec3 v_frag_coord; 
 in vec3 v_normal; 
 in vec2 v_tex;
+in mat3 v_TBN;
 
 uniform vec3 u_view_pos; 
 
@@ -24,6 +25,7 @@ uniform Light light;uniform float shininess;
 uniform vec3 materialColour; 
 
 uniform sampler2D u_texture;
+uniform sampler2D u_normalMap;
 
 float specularCalculation(vec3 N, vec3 L, vec3 V ) { 
     vec3 R = reflect (-L,N);  
@@ -33,8 +35,11 @@ float specularCalculation(vec3 N, vec3 L, vec3 V ) {
 }
 
 void main() { 
+    // vec3 N = normalize(v_normal);
+    vec3 normal = texture(u_normalMap, v_tex).xyz;
+    vec3 N = normal * 2.0 - 1.0;
+    N = normalize(v_TBN * N);
     
-    vec3 N = normalize(v_normal);
     vec3 L = normalize(light.light_pos - v_frag_coord) ; 
     vec3 V = normalize(u_view_pos - v_frag_coord); 
     float specular = specularCalculation( N, L, V); 
@@ -43,6 +48,6 @@ void main() {
     // FragColor = vec4(materialColour * vec3(light), 1.0); 
     
 
-    // FragColor = vec4(texture(u_texture, v_tex).xyz * vec3(light)* 1.5, 1.0);
-    FragColor = texture(u_texture, v_tex);
+    FragColor = vec4(texture(u_texture, v_tex).xyz * vec3(light)* 1.5, 1.0);
+    // FragColor = texture(u_texture, v_tex);
 } 

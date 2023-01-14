@@ -1,10 +1,12 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
 #include "billiard.h"
+#include "shader.h"
 
 
 class InputHandler
@@ -21,12 +23,26 @@ public:
 	bool cursorKeyPressed = false;
 	bool cursorEnabled = false;
 
+	bool cueStatePressed = false;
+
 	bool firstMouse = true;
 	double lastMouseX = 0;
 	double lastMouseY = 0;
 
 	Camera* camera;
 	PoolGame* poolGame;
+
+	bool displayControls = false;
+	bool controlsPressed = false;
+
+	GLuint controlsVAO;
+	GLuint controlsTex;
+
+	void setupControls() {
+		controlsTex = Texture(PATH_TO_TEXTURE "/controls.png").ID;
+		controlsVAO = Mesh(PATH_TO_OBJECTS "/plane.obj").VAO;
+		std::cout << "----------------------------\nPress F1 to display controls" << std::endl;
+	}
 
 	void processInput(GLFWwindow* window, double deltaTime) {
 		// Window
@@ -44,6 +60,15 @@ public:
 			cursorKeyPressed = false;
 		}
 		
+		// Press F1 to display/hide controls
+		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS && !controlsPressed) {
+			controlsPressed = true;
+			displayControls = !displayControls;
+		}
+		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE) {
+			controlsPressed = false;
+		}
+
 		processCameraInput(window, deltaTime);
 		processPoolInput(window, deltaTime);
 	}
@@ -95,11 +120,36 @@ public:
 	void processPoolInput(GLFWwindow* window, double deltaTime) {
 		if (!poolGame) return;
 
-		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+		// Reset cue ball with U and the whole game with O
+		if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
 			poolGame->resetCueBall();
-
 		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
 			poolGame->resetGame();
+
+		// Enable/Disable cue with H
+		if (!cueStatePressed && glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
+			poolGame->switchCueState();
+			cueStatePressed = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_H) == GLFW_RELEASE)
+			cueStatePressed = false;
+		
+
+		// Turn cue with J & L
+		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+			poolGame->turnCue(-1, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+			poolGame->turnCue(1, deltaTime);
+
+		// Choose force of the shot with K & I
+		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+			poolGame->moveCue(1, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+			poolGame->moveCue(-1, deltaTime);
+		
+		// Shoot with SPACE
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+			poolGame->shootCue();
 	}
 
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -138,6 +188,19 @@ public:
 			camera->ProcessSpeedScroll(yoffset);
 			break;
 		}
+	}
+
+	void drawControls(Shader& shader) {
+		if (!displayControls) return;
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		
+		shader.use();
+		glBindVertexArray(controlsVAO);
+		glActiveTexture(GL_TEXTURE0); 
+		glBindTexture(GL_TEXTURE_2D, controlsTex);
+		shader.setInteger("u_texture", 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 };
 

@@ -21,6 +21,7 @@
 #include "mesh.h"
 #include "entity.h"
 #include "ball.h"
+#include "cue.h"
 
 
 
@@ -32,8 +33,10 @@ class PoolGame
 public:
     Mesh tableMesh;
     Mesh ballMesh;
+    Mesh cueMesh = Mesh(PATH_TO_OBJECTS "/pool_cue.obj");
 
     Entity table;
+    PoolCue cue;
     std::vector<PoolBall> balls;
     std::vector<PoolPocket> pockets;
 
@@ -47,7 +50,10 @@ public:
         const char* tableTexturePath,
         const char* ballMeshPath,
         std::string ballTexturePath
-        ) : tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath) {
+        ) : 
+        tableMesh(tableMeshPath), table(tableMesh, Texture(tableTexturePath)), ballMesh(ballMeshPath),
+        cue(cueMesh, Texture(PATH_TO_TEXTURE "/pool_table/cue_colormap.jpg"))
+         {
         
         for (int i = 0; i < 16; i++) {
             std::stringstream ss;
@@ -56,17 +62,19 @@ public:
             balls.push_back(PoolBall(ballMesh, texture));
         }
 
+        // cue.transform  = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.5f, -1.0f));
+
         setupPockets();
         resetGame();
     }
 
     void update(double deltaTime) {
-        timer += deltaTime;
-        if (timer > 5.0f) {
-            timer = 0.0f;
+        // timer += deltaTime;
+        // if (timer > 5.0f) {
+        //     timer = 0.0f;
 
-            balls.at(0).impulse(300.0f, (std::rand() % 360) - 130.0f);
-        }
+        //     balls.at(0).impulse(300.0f, (std::rand() % 360) - 130.0f);
+        // }
 
         for (PoolBall& ball : balls) {
             ball.update(deltaTime);
@@ -85,10 +93,24 @@ public:
             ball.checkTable(pockets, COORD_RES.z * 0.5f, COORD_RES.x * 0.5f);
             ball.computeTransform(table.transform, TABLE_DIM, COORD_RES);
         }
+
+        if (cue.update(deltaTime, balls.at(0).Position)) {
+            balls.at(0).impulse(cue.force, cue.azimuthal);
+        }
+        cue.computeTransform(table.transform, TABLE_DIM, COORD_RES);
     }
 
     void resetCueBall() {
         balls.at(0).reset(0.0f, COORD_RES.x * 0.25f);
+    }
+
+    void draw(Shader& shader) {
+        table.draw(shader);
+        cue.draw(shader);
+        
+        for (PoolBall& ball : balls) {
+            ball.draw(shader);
+        }
     }
 
     void resetGame() {
@@ -96,13 +118,20 @@ public:
         // ...
     }
 
-    // TODO : separate shaders for table and balls ?
-    void draw(Shader& shader) {
-        table.draw(shader);
-        
-        for (PoolBall& ball : balls) {
-            ball.draw(shader);
-        }
+    void turnCue(int direction, float deltaTime) {
+        cue.turn(direction, deltaTime);
+    }
+    
+    void moveCue(int direction, float deltaTime) {
+        cue.changeDistance(direction, deltaTime);
+    }
+
+    void shootCue() {
+        cue.shoot();
+    }
+
+    void switchCueState() {
+        cue.switchEnable();
     }
 
 private: 
