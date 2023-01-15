@@ -34,6 +34,7 @@ public:
     Mesh window_mesh = Mesh(PATH_TO_OBJECTS "/room/windows.obj");
     Mesh mirror_mesh = Mesh(PATH_TO_OBJECTS "/room/mirror_plane.obj");
     Mesh lamp_mesh = Mesh(PATH_TO_OBJECTS "/room/lamp.obj");
+    Mesh bulb_mesh = Mesh(PATH_TO_OBJECTS "/pool_ball.obj");
 
     // Pool table
     PoolGame poolGame = PoolGame(
@@ -49,6 +50,9 @@ public:
     // Window
     RoomWindow window;
 
+    // light Bulb
+    Entity lightBulb;
+
     // Generic models
     std::vector<Entity> objects; 
 
@@ -56,7 +60,8 @@ public:
 
     RoomScene(Skybox& skybox) : 
         window(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"), &skybox),
-        mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG"))
+        mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG")),
+        lightBulb(bulb_mesh, Texture(PATH_TO_TEXTURE "/room/lamp_colormap.jpg"))
     {        
         Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
 	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.72f));
@@ -68,7 +73,7 @@ public:
         objects.push_back(shelf);
 
         objects.push_back(Entity(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg")));
-        objects.push_back(Entity(lamp_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"))); // TODO : own UV map
+        objects.push_back(Entity(lamp_mesh, Texture(PATH_TO_TEXTURE "/room/lamp_colormap.jpg"))); // TODO : own UV map
         objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/carpet_normalmap.jpg")));
         objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/room_normalmap.jpg")));
         // Transforms
@@ -77,6 +82,8 @@ public:
         // }
         // window.transform = this->transform;
         mirror.transform = this->transform * glm::translate(mirror.transform, glm::vec3(0.0f, 2.0f, -1.725f));
+        lightBulb.transform = this->transform * glm::scale(glm::translate(lightBulb.transform, glm::vec3(0.0f, 2.95f, -0.01f)), glm::vec3(1.7f));
+        
     }
 
 
@@ -84,7 +91,7 @@ public:
         poolGame.update(deltaTime);
     }
 
-    void drawRoom(Shader& shader, Shader& windowShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
+    void drawRoom(Shader& shader, Shader& windowShader, Shader& lampShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
         shader.use();
         setupShader(shader, perspective, view, position);
 
@@ -93,9 +100,13 @@ public:
         for (Entity& object : objects) {
             object.draw(shader);
         }
+
+        lampShader.use();
+        setupShader(lampShader, perspective, view, position);
+        lightBulb.draw(lampShader);
+
         windowShader.use();
         setupShader(windowShader, perspective, view, position);
-
         window.draw(windowShader);
     }
 
@@ -111,7 +122,7 @@ public:
         glDisable(GL_CULL_FACE);
     }
 
-    void drawMirroredRoom(Shader& shader, Shader& windowShader, Shader& mirrorShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
+    void drawMirroredRoom(Shader& shader, Shader& windowShader, Shader& lampShader, Shader& mirrorShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
         glStencilOp(GL_REPLACE, GL_KEEP, GL_REPLACE);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glEnable(GL_STENCIL_TEST);
@@ -132,7 +143,7 @@ public:
 
         // Draw mirrored scene
         mirror.computeMirroredProperties(perspective, view, position);
-        drawRoom(shader, windowShader, mirror.mirroredPerspective, mirror.mirroredView, mirror.mirroredPosition);
+        drawRoom(shader, windowShader, lampShader, mirror.mirroredPerspective, mirror.mirroredView, mirror.mirroredPosition);
 
         // Draw mirror texture
         glClear(GL_DEPTH_BUFFER_BIT);

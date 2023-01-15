@@ -142,6 +142,9 @@ int main(int argc, char* argv[])
 	Shader imageShader(PATH_TO_SHADERS "/image.vert",
 				  	   PATH_TO_SHADERS "/image.frag");
 
+	Shader lampShader(PATH_TO_SHADERS "/simple.vert",
+					   PATH_TO_SHADERS "/lamp.frag");
+
 	// Skybox
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -266,7 +269,7 @@ int main(int argc, char* argv[])
 
 		glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);		
-		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
+		room.drawRoom(multiplelightingShader, windowShader, lampShader, perspective, view, camera.Position);
 		glDisable(GL_CULL_FACE);
 
 		// Sky
@@ -278,7 +281,7 @@ int main(int argc, char* argv[])
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 		
-		room.drawMirroredRoom(multiplelightingShader, windowShader, mirrorShader, perspective, view, camera.Position);
+		room.drawMirroredRoom(multiplelightingShader, windowShader, lampShader, mirrorShader, perspective, view, camera.Position);
 		
 		inputHandler.drawControls(imageShader);
 
@@ -328,7 +331,8 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
 
 
     //Point light
-    glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
+    // glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
+    glm::vec3 testlums1 = glm::vec3(0.0, 2.6, -0.01);
     multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
     multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
     multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
