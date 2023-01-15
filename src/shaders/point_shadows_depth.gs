@@ -1,4 +1,6 @@
 #version 330 core
+// Some parts of the code were taken from https://learnopengl.com/
+
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 

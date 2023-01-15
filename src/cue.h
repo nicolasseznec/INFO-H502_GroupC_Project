@@ -1,6 +1,8 @@
 #ifndef CUE_H
 #define CUE_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

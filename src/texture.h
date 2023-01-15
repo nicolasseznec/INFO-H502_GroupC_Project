@@ -1,6 +1,9 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
+
 #include <iostream>
 
 #include <glad/glad.h>

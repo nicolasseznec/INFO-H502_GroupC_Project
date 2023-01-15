@@ -1,6 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include "entity.h"
 #include "skybox.h"
 

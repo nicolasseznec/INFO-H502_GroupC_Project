@@ -1,6 +1,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include<iostream>
 
 #include <glad/glad.h>

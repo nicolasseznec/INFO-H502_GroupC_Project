@@ -1,6 +1,9 @@
 #ifndef SKYBOX_H
 #define SKYBOX_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
+
 #include <iostream>
 #include <map>
 

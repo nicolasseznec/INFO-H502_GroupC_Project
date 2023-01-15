@@ -1,5 +1,8 @@
 #version 330 core
 
+// Some parts of the code were taken from https://learnopengl.com/
+
+
 
 out vec4 FragColor;
 

@@ -1,5 +1,8 @@
 #include<iostream>
 
+
+// Some parts of the code were taken from https://learnopengl.com/
+
 //include glad before GLFW to avoid header conflict or define "#define GLFW_INCLUDE_NONE"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

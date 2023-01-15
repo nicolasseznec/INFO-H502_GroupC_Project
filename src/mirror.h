@@ -1,6 +1,8 @@
 #ifndef MIRROR_H
 #define MIRROR_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

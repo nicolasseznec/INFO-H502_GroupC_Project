@@ -1,4 +1,5 @@
 #version 400 core
+// Some parts of the code were taken from https://learnopengl.com/
 
 precision mediump float; 
 in vec2 v_tex;

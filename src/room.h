@@ -1,6 +1,9 @@
 #ifndef ROOM_H
 #define ROOM_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
+
 #include <iostream>
 #include <vector>
 
