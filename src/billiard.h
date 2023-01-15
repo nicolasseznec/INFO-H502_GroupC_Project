@@ -1,6 +1,8 @@
 #ifndef BILLIARD_H
 #define BILLIARD_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <iostream>
 #include <sstream>
 #include <iomanip>

@@ -1,11 +1,13 @@
 #version 330 core
+// Some parts of the code were taken from https://learnopengl.com/
+
 
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 tex_coords;
 layout (location = 2) in vec3 normal;
-layout (location = 3) in vec3 tangent; 
-layout (location = 4) in vec3 bitangent; 
+layout (location = 3) in vec3 tangent;
+layout (location = 4) in vec3 bitangent;
 
 uniform mat4 M;
 uniform mat4 itM;

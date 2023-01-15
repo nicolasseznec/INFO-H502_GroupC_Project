@@ -1,4 +1,6 @@
 #version 330 core
+// Some parts of the code were taken from https://learnopengl.com/
+
 in vec4 FragPos;
 
 uniform vec3 lightPos;

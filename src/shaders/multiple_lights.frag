@@ -1,5 +1,8 @@
 #version 330 core
 
+// Some parts of the code were taken from https://learnopengl.com/
+
+
 
 out vec4 FragColor;
 
@@ -11,7 +14,7 @@ in mat3 v_TBN;
 
 struct DirLight {
     vec3 direction;
-	
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -19,11 +22,11 @@ struct DirLight {
 
 struct PointLight {
     vec3 light_pos;
-    
+
     float constant;
     float linear;
     float quadratic;
-	
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -34,24 +37,26 @@ struct SpotLight {
     vec3 direction;
     float cutOff;
     float outerCutOff;
-  
+
     float constant;
     float linear;
     float quadratic;
-  
+
     vec3 ambient;
     vec3 diffuse;
-    vec3 specular;       
+    vec3 specular;
 };
 
+#define NR_DIR_LIGHTS 1
 #define NR_POINT_LIGHTS 1
+#define NR_SPOT_LIGHTS 2
 
 
 uniform vec3 u_view_pos;
 
-uniform DirLight dirLight;
+uniform DirLight dirLights[NR_DIR_LIGHTS];
 uniform PointLight pointLights[NR_POINT_LIGHTS];
-uniform SpotLight spotLight;
+uniform SpotLight spotLights[NR_SPOT_LIGHTS];
 uniform vec3 materialColour;
 uniform float shininess;
 
@@ -89,7 +94,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
-{    
+{
     // properties
     vec3 norm;
     if (useNormalMap) {
@@ -102,9 +107,9 @@ void main()
     else {
         norm = normalize(v_normal);
     }
-    
+
     vec3 viewDir = normalize(u_view_pos - v_frag_coord);
-    
+
     // == =====================================================
     // Our lighting is set up in 3 phases: directional, point lights and an optional flashlight
     // For each phase, a calculate function is defined that calculates the corresponding color
@@ -112,15 +117,30 @@ void main()
     // this fragment's final color.
     // == =====================================================
     // phase 1: directional lighting
-    vec3 result = CalcDirLight(dirLight, norm, viewDir);
+    vec3 result = vec3(0.0);
+
+    for(int i = 0; i < NR_DIR_LIGHTS; i++)
+    result += CalcDirLight(dirLights[i], norm, viewDir);
+    //vec3 result = CalcDirLight(dirLights, norm, viewDir);
+
+
     // phase 2: point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        result += CalcPointLight(pointLights[i], norm, v_frag_coord, viewDir);
+    result += CalcPointLight(pointLights[i], norm, v_frag_coord, viewDir);
+
+
+
     // phase 3: spot light
-    result += CalcSpotLight(spotLight, norm, v_frag_coord, viewDir);
-    
+    for(int i = 0; i < NR_SPOT_LIGHTS; i++)
+    result += CalcSpotLight(spotLights[i], norm, v_frag_coord, viewDir);
+    //result += CalcSpotLight(spotLights, norm, v_frag_coord, viewDir);
+
     // FragColor = vec4(result, 1.0);
-    
+
+
+
+
+
     float shadow = ShadowCalculation(v_frag_coord) * 0.5;
     // float shadow = ShadowCalculation(v_frag_coord);
     FragColor = vec4(result * (1.0 - shadow), 1.0);
@@ -157,7 +177,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     // attenuation
     float distance = length(light.light_pos - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // combine results
     vec3 ambient = light.ambient * vec3(texture(u_texture, v_tex).rgb);
     vec3 diffuse = light.diffuse * diff * vec3(texture(u_texture, v_tex).rgb);
@@ -179,9 +199,9 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     // attenuation
     float distance = length(light.light_pos - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     // spotlight intensity
-    float theta = dot(lightDir, normalize(-light.direction)); 
+    float theta = dot(lightDir, normalize(-light.direction));
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
     // combine results
@@ -232,7 +252,7 @@ float ShadowCalculation(vec3 fragPos)
     // int samples = 20;
     // float viewDistance = length(u_view_pos - fragPos);
     // float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
-    
+
     // for(int i = 0; i < samples; i++)
     // {
     //     float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
@@ -245,8 +265,8 @@ float ShadowCalculation(vec3 fragPos)
 
     float closestDepth = texture(depthMap, fragToLight).r;
     closestDepth *= far_plane;
-    float bias = 0.05; 
-    // float bias = 0.005; 
+    float bias = 0.05;
+    // float bias = 0.005;
     shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
 
 

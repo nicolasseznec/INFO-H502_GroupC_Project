@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <iostream>
 #include <vector>
 

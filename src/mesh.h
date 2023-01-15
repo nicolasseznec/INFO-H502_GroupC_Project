@@ -1,6 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <iostream>
 #include <fstream>
 #include <string>

@@ -1,4 +1,5 @@
 #version 330 core
+// Some parts of the code were taken from https://learnopengl.com/
 
 
 layout (location = 0) in vec3 position; 

@@ -1,6 +1,8 @@
 #ifndef BALL_H
 #define BALL_H
 
+// Some parts of the code were taken from https://learnopengl.com/
+
 #include <vector>
 
 #include <glad/glad.h>
