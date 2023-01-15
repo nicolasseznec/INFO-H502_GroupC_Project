@@ -18,6 +18,8 @@ struct DirLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    bool enabled;
 };
 
 struct PointLight {
@@ -30,6 +32,8 @@ struct PointLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    bool enabled;
 };
 
 struct SpotLight {
@@ -45,12 +49,13 @@ struct SpotLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    bool enabled;
 };
 
 #define NR_DIR_LIGHTS 1
 #define NR_POINT_LIGHTS 1
-// #define NR_SPOT_LIGHTS 2
-#define NR_SPOT_LIGHTS 1
+#define NR_SPOT_LIGHTS 2
 
 
 uniform vec3 u_view_pos;
@@ -120,20 +125,26 @@ void main()
     // phase 1: directional lighting
     vec3 result = vec3(0.0);
 
-    for(int i = 0; i < NR_DIR_LIGHTS; i++)
-    result += CalcDirLight(dirLights[i], norm, viewDir);
+    for(int i = 0; i < NR_DIR_LIGHTS; i++) {
+        if (!dirLights[i].enabled) continue;
+        result += CalcDirLight(dirLights[i], norm, viewDir);
+    }
     //vec3 result = CalcDirLight(dirLights, norm, viewDir);
 
 
     // phase 2: point lights
-    for(int i = 0; i < NR_POINT_LIGHTS; i++)
-    result += CalcPointLight(pointLights[i], norm, v_frag_coord, viewDir);
+    for(int i = 0; i < NR_POINT_LIGHTS; i++) {
+        if (!pointLights[i].enabled) continue;
+        result += CalcPointLight(pointLights[i], norm, v_frag_coord, viewDir);
+    }
 
 
 
     // phase 3: spot light
-    for(int i = 0; i < NR_SPOT_LIGHTS; i++)
-    result += CalcSpotLight(spotLights[i], norm, v_frag_coord, viewDir);
+    for(int i = 0; i < NR_SPOT_LIGHTS; i++) {
+        if (!spotLights[i].enabled) continue;
+        result += CalcSpotLight(spotLights[i], norm, v_frag_coord, viewDir);
+    }
     //result += CalcSpotLight(spotLights, norm, v_frag_coord, viewDir);
 
     // FragColor = vec4(result, 1.0);

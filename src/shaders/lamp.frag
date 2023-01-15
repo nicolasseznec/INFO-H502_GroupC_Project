@@ -9,9 +9,13 @@ in vec2 v_tex;
 out vec4 FragColor;
 
 uniform sampler2D u_texture;
-
+uniform bool enabled;
 
 void main() { 
     vec4 texColor = texture(u_texture, v_tex);
-    FragColor = vec4(1.0);
+    vec3 color;
+    if (enabled) color = vec3(1.0);
+    else color = vec3(0.0);
+
+    FragColor = vec4(color, 1.0);
 } 

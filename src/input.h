@@ -38,6 +38,9 @@ public:
 	bool displayControls = false;
 	bool controlsPressed = false;
 
+	bool enabledLights = true;
+	bool lightsPressed = false;
+
 	GLuint controlsVAO;
 	GLuint controlsTex;
 
@@ -70,6 +73,15 @@ public:
 		}
 		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE) {
 			controlsPressed = false;
+		}
+
+		// Press F to turn lights on/off
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && !lightsPressed) {
+			lightsPressed = true;
+			enabledLights = !enabledLights;
+		}
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE) {
+			lightsPressed = false;
 		}
 
 		processCameraInput(window, deltaTime);

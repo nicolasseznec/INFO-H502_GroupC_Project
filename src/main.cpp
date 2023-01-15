@@ -30,7 +30,7 @@
 
 
 std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos);
-void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane);
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane, bool enabledLights);
 
 const int width = 800;
 const int height = 800;
@@ -171,6 +171,7 @@ int main(int argc, char* argv[])
 	// lighting info
     // -------------
 	glm::vec3 lightPos(0.0f, 2.0f, 0.0f);
+	// glm::vec3 lightPos(15.0f, 10.0f, 0.0f);
 
 	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
@@ -190,7 +191,7 @@ int main(int argc, char* argv[])
 	float near_plane = 0.1f;
 	float far_plane = 25.0f;
 	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
-	std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
+	// std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
 
     /*-----------------------------------------------------------*/
 
@@ -213,11 +214,11 @@ int main(int argc, char* argv[])
 	double prevTime = 0;
 	double deltaTime = 0;
 
-	simpleDepthShader.use();
-	for (unsigned int i = 0; i < 6; ++i)
-		simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-	simpleDepthShader.setFloat("far_plane", far_plane);
-	simpleDepthShader.setVector3f("lightPos", lightPos);
+	// simpleDepthShader.use();
+	// for (unsigned int i = 0; i < 6; ++i)
+	// 	simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+	// simpleDepthShader.setFloat("far_plane", far_plane);
+	// simpleDepthShader.setVector3f("lightPos", lightPos);
 
 
 	inputHandler.setupControls();
@@ -230,11 +231,15 @@ int main(int argc, char* argv[])
 		fps(now);
 		inputHandler.processInput(window, deltaTime);
 
+		bool enabledLights = inputHandler.enabledLights;
+		room.enableLights = enabledLights;
+		lightPos = enabledLights ? glm::vec3(0.0f, 2.0f, 0.0f) : glm::vec3(15.0f, 10.0f, 0.0f);
+
         view = camera.GetViewMatrix();
 		perspective = camera.GetProjectionMatrix();
 
 		room.update(deltaTime);
-		
+
 		glfwPollEvents();
 
 		// ------------- Render -------------
@@ -250,7 +255,12 @@ int main(int argc, char* argv[])
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
+		std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
         simpleDepthShader.use();
+		for (unsigned int i = 0; i < 6; ++i)
+			simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+		simpleDepthShader.setFloat("far_plane", far_plane);
+		simpleDepthShader.setVector3f("lightPos", lightPos);
 
 		room.drawDepthMap(simpleDepthShader);
 
@@ -265,7 +275,7 @@ int main(int argc, char* argv[])
 		glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
         
-		setupLightShader(multiplelightingShader, perspective, view, camera.Position, lightPos, far_plane);
+		setupLightShader(multiplelightingShader, perspective, view, camera.Position, lightPos, far_plane, enabledLights);
 
 		glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);		
@@ -311,7 +321,7 @@ std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 li
 }
 
 
-void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane) {
+void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane, bool enableLights) {
 	multiplelightingShader.use();
 	multiplelightingShader.setBool("useNormalMap", false);
 	multiplelightingShader.setInteger("depthMap", 2);
@@ -323,7 +333,9 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
 
 
     // directional light
-    glm::vec3 testdir = glm::vec3(0.0, 0.5, 2.0);
+    // glm::vec3 testdir = glm::vec3(0.0, 0.5, 2.0);
+    glm::vec3 testdir = glm::vec3(-1.0f, -0.5f, 0.0f);
+    multiplelightingShader.setBool("dirLights[0].enabled", !enableLights);
     multiplelightingShader.setVector3f("dirLights[0].direction", testdir);
     multiplelightingShader.setVector3f("dirLights[0].ambient", 0.05f, 0.05f, 0.05f);
     multiplelightingShader.setVector3f("dirLights[0].diffuse", 0.4f, 0.4f, 0.4f);
@@ -333,6 +345,7 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     //Point light
     // glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
     glm::vec3 testlums1 = glm::vec3(0.0, 2.6, -0.01);
+    multiplelightingShader.setBool("pointLights[0].enabled", enableLights);
     multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
     multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
     multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
@@ -341,9 +354,11 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("pointLights[0].linear", 0.09f);
     multiplelightingShader.setFloat("pointLights[0].quadratic", 0.032f);
 	
+	
     //Spotlight 1 (down)
     glm::vec3 testspotpos = glm::vec3(0.0, 2.92, 0.0);
     glm::vec3 testspotdir = glm::vec3(0.0, -1.0, 0.0);
+	multiplelightingShader.setBool("spotLights[0].enabled", enableLights);
     multiplelightingShader.setVector3f("spotLights[0].light_pos", testspotpos);
     multiplelightingShader.setVector3f("spotLights[0].direction", testspotdir);
     multiplelightingShader.setVector3f("spotLights[0].ambient", 0.0f, 0.0f, 0.0f);
@@ -355,10 +370,11 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("spotLights[0].cutOff", glm::cos(glm::radians(12.5f)));
     multiplelightingShader.setFloat("spotLights[0].outerCutOff", glm::cos(glm::radians(15.0f)));
 	
-	/*
+
     //Spotlight 2 (up)
     glm::vec3 testspotpos2 = glm::vec3(0.0, 1.6, 0.0);
     glm::vec3 testspotdir2 = glm::vec3(0.0, 1.0, 0.0);
+	multiplelightingShader.setBool("spotLights[1].enabled", false);
     multiplelightingShader.setVector3f("spotLights[1].light_pos", testspotpos2);
     multiplelightingShader.setVector3f("spotLights[1].direction", testspotdir2);
     multiplelightingShader.setVector3f("spotLights[1].ambient", 0.0f, 0.0f, 0.0f);
@@ -369,5 +385,4 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("spotLights[1].quadratic", 0.032f);
     multiplelightingShader.setFloat("spotLights[1].cutOff", glm::cos(glm::radians(12.5f)));
     multiplelightingShader.setFloat("spotLights[1].outerCutOff", glm::cos(glm::radians(15.0f)));
-	*/
 }

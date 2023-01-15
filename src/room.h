@@ -52,6 +52,7 @@ public:
 
     // light Bulb
     Entity lightBulb;
+    bool enableLights;
 
     // Generic models
     std::vector<Entity> objects; 
@@ -102,6 +103,7 @@ public:
         }
 
         lampShader.use();
+        lampShader.setBool("enabled", enableLights);
         setupShader(lampShader, perspective, view, position);
         lightBulb.draw(lampShader);
 
