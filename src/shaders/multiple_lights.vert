@@ -28,6 +28,6 @@ void main() {
 
     vec3 T = length(tangent) > 0.0 ? normalize(vec3(M * vec4(tangent, 0.0))) : vec3(0.0);
     vec3 B = length(bitangent) > 0.0 ? normalize(vec3(M * vec4(bitangent, 0.0))) : vec3(0.0);
-    vec3 N = normalize(vec3(M * vec4(normal, 0.0)));
+    vec3 N = normalize(v_normal);
     v_TBN = mat3(T, B, N);
 }

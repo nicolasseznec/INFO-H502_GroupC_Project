@@ -1,7 +1,7 @@
-#include<iostream>
-
-
 // Some parts of the code were taken from https://learnopengl.com/
+
+
+#include<iostream>
 
 //include glad before GLFW to avoid header conflict or define "#define GLFW_INCLUDE_NONE"
 #include <glad/glad.h>
@@ -32,8 +32,6 @@
 std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos);
 void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane);
 
-void renderCube();
-bool shadows = true;
 const int width = 800;
 const int height = 800;
 
@@ -125,12 +123,8 @@ int main(int argc, char* argv[])
 
 
 	// Loading shaders
-
-
-	
 	Shader cubeMapShader(PATH_TO_SHADERS "/cubeMap.vert", 
 						 PATH_TO_SHADERS "/cubeMap.frag");
-
 
     Shader multiplelightingShader(PATH_TO_SHADERS "/multiple_lights.vert",
                                   PATH_TO_SHADERS "/multiple_lights.frag");
@@ -140,9 +134,6 @@ int main(int argc, char* argv[])
 						
 	Shader mirrorShader(PATH_TO_SHADERS "/simple.vert", 
 						PATH_TO_SHADERS "/mirror.frag");
-
-	Shader shadowShader(PATH_TO_SHADERS "/point_shadows.vert",
-                        PATH_TO_SHADERS "/point_shadows.frag");
 
     Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
                              PATH_TO_SHADERS "/point_shadows_depth.frag",
@@ -164,15 +155,6 @@ int main(int argc, char* argv[])
 	};
 	Skybox skybox(pathToCubeMap, facesToLoad , pathCube);
 
-	// Mesh wall_mesh = Mesh(PATH_TO_OBJECTS "/plane.obj", true);
-	// Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/wall_normalMap.jpg"));
-	// Entity wall(wall_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"), Texture(PATH_TO_TEXTURE "/room/mud.jpg"));
-	// wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.1, 0.0f));
-	// wall.transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f));
-	// wall.transform = glm::rotate(wall.transform, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-	// wall.transform = glm::rotate(wall.transform, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	// wall.transform = glm::rotate(wall.transform, glm::radians(23.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
 	// Scene
 	RoomScene room(skybox);
 
@@ -191,13 +173,6 @@ int main(int argc, char* argv[])
 
 	// shader configuration
     // --------------------
-
-    shadowShader.use();
-    // shadowShader.setInteger("depthMap", 1);
-    shadowShader.setInteger("depthMap", 2);
-	shadowShader.setVector3f("materialColour", materialColour);
-    //shadowShader.setInteger("diffuseTexture", 0);
-    // shadowShader.setFloat("shininess", 32.0f);
 
     multiplelightingShader.use();
     multiplelightingShader.setVector3f("materialColour", materialColour);
@@ -235,29 +210,13 @@ int main(int argc, char* argv[])
 	double prevTime = 0;
 	double deltaTime = 0;
 
-
-	// glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	// glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	// glClear(GL_DEPTH_BUFFER_BIT);
 	simpleDepthShader.use();
 	for (unsigned int i = 0; i < 6; ++i)
 		simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
 	simpleDepthShader.setFloat("far_plane", far_plane);
 	simpleDepthShader.setVector3f("lightPos", lightPos);
 
-	// glm::mat4 model = glm::mat4(1.0f);
-	// model = glm::scale(model, glm::vec3(5.0f));
-	// simpleDepthShader.setMatrix4("M", model);
-	// glDisable(GL_CULL_FACE);
-	// renderCube();
-	// glEnable(GL_CULL_FACE);
-	// glCullFace(GL_BACK);
 
-
-	// room.poolGame.draw(simpleDepthShader);
-	// room.drawDepthMap(simpleDepthShader);
-	
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	inputHandler.setupControls();
 
 	glfwSwapInterval(1);
@@ -300,28 +259,8 @@ int main(int argc, char* argv[])
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// shadowShader.use();
-		// // set lighting uniforms
-		// shadowShader.setVector3f("lightPos", lightPos);
-		// shadowShader.setVector3f("viewPos", camera.Position);
-		// shadowShader.setInteger("shadows", shadows); // enable/disable shadows by pressing 'SPACE'
-		// shadowShader.setFloat("far_plane", far_plane);
-		// shadowShader.setMatrix4("V", view);
-		// shadowShader.setMatrix4("P", perspective);
-
 		glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-
-		/*
-        glm::mat4 modele = glm::mat4(1.0f);
-        modele = glm::scale(modele, glm::vec3(5.0f));
-        shadowShader.setMatrix4("M", modele);
-        // glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-        shadowShader.setInteger("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
-        renderCube();
-        shadowShader.setInteger("reverse_normals", 0); // and of course disable it
-        // glEnable(GL_CULL_FACE);
-		*/
         
 		setupLightShader(multiplelightingShader, perspective, view, camera.Position, lightPos, far_plane);
 
@@ -329,8 +268,6 @@ int main(int argc, char* argv[])
         glCullFace(GL_BACK);		
 		room.drawRoom(multiplelightingShader, windowShader, perspective, view, camera.Position);
 		glDisable(GL_CULL_FACE);
-
-
 
 		// Sky
 		glDepthFunc(GL_LEQUAL);
@@ -399,10 +336,10 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("pointLights[0].constant", 1.0f);
     multiplelightingShader.setFloat("pointLights[0].linear", 0.09f);
     multiplelightingShader.setFloat("pointLights[0].quadratic", 0.032f);
-
-    //Spotlight 1
-    glm::vec3 testspotpos = glm::vec3(0.0, 1.6, 0.0);
-    glm::vec3 testspotdir = glm::vec3(0.0, 1.0, 0.0);
+	
+    //Spotlight 1 (down)
+    glm::vec3 testspotpos = glm::vec3(0.0, 2.92, 0.0);
+    glm::vec3 testspotdir = glm::vec3(0.0, -1.0, 0.0);
     multiplelightingShader.setVector3f("spotLights[0].light_pos", testspotpos);
     multiplelightingShader.setVector3f("spotLights[0].direction", testspotdir);
     multiplelightingShader.setVector3f("spotLights[0].ambient", 0.0f, 0.0f, 0.0f);
@@ -413,11 +350,11 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("spotLights[0].quadratic", 0.032f);
     multiplelightingShader.setFloat("spotLights[0].cutOff", glm::cos(glm::radians(12.5f)));
     multiplelightingShader.setFloat("spotLights[0].outerCutOff", glm::cos(glm::radians(15.0f)));
-
-
-    //Spotlight 2
-    glm::vec3 testspotpos2 = glm::vec3(0.0, 2.92, 0.0);
-    glm::vec3 testspotdir2 = glm::vec3(0.0, -1.0, 0.0);
+	
+	/*
+    //Spotlight 2 (up)
+    glm::vec3 testspotpos2 = glm::vec3(0.0, 1.6, 0.0);
+    glm::vec3 testspotdir2 = glm::vec3(0.0, 1.0, 0.0);
     multiplelightingShader.setVector3f("spotLights[1].light_pos", testspotpos2);
     multiplelightingShader.setVector3f("spotLights[1].direction", testspotdir2);
     multiplelightingShader.setVector3f("spotLights[1].ambient", 0.0f, 0.0f, 0.0f);
@@ -428,81 +365,5 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setFloat("spotLights[1].quadratic", 0.032f);
     multiplelightingShader.setFloat("spotLights[1].cutOff", glm::cos(glm::radians(12.5f)));
     multiplelightingShader.setFloat("spotLights[1].outerCutOff", glm::cos(glm::radians(15.0f)));
-}
-
-
-
-// renderCube() renders a 1x1 3D cube in NDC.
-// -------------------------------------------------
-unsigned int cubeVAO = 0;
-unsigned int cubeVBO = 0;
-void renderCube()
-{
-    // initialize (if necessary)
-    if (cubeVAO == 0)
-    {
-        float vertices[] = {
-                // back face
-                -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-                1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-                1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
-                1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-                -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-                -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-                // front face
-                -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-                1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-                1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-                1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-                -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-                -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-                // left face
-                -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-                -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-                -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-                -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-                -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-                -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-                // right face
-                1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-                1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-                1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right
-                1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-                1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-                1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left
-                // bottom face
-                -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-                1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-                1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-                1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-                -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-                -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-                // top face
-                -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-                1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-                1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right
-                1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-                -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-                -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left
-        };
-        glGenVertexArrays(1, &cubeVAO);
-        glGenBuffers(1, &cubeVBO);
-        // fill buffer
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        // link vertex attributes
-        glBindVertexArray(cubeVAO);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    // render Cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
+	*/
 }

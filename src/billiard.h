@@ -107,12 +107,11 @@ public:
     }
 
     void draw(Shader& shader) {
-        table.draw(shader);
         cue.draw(shader);
-        
         for (PoolBall& ball : balls) {
             ball.draw(shader);
         }
+        table.draw(shader);
     }
 
     void resetGame() {

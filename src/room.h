@@ -33,6 +33,7 @@ public:
     Mesh mirror_frame_mesh = Mesh(PATH_TO_OBJECTS "/room/mirror_frame.obj");
     Mesh window_mesh = Mesh(PATH_TO_OBJECTS "/room/windows.obj");
     Mesh mirror_mesh = Mesh(PATH_TO_OBJECTS "/room/mirror_plane.obj");
+    Mesh lamp_mesh = Mesh(PATH_TO_OBJECTS "/room/lamp.obj");
 
     // Pool table
     PoolGame poolGame = PoolGame(
@@ -56,20 +57,20 @@ public:
     RoomScene(Skybox& skybox) : 
         window(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"), &skybox),
         mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG"))
-    {
-        objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/room_normalmap.jpg")));
-        objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/carpet_normalmap.jpg")));
-        objects.push_back(Entity(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg")));
+    {        
+        Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
+	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.72f));
+        objects.push_back(mirror_frame);
 
         Entity shelf(shelf_mesh, Texture(PATH_TO_TEXTURE "/room/Shelf.jpg"));
         shelf.transform = glm::translate(shelf.transform, glm::vec3(1.3f, 0.1f, 1.35f));
 	    shelf.transform = glm::rotate(shelf.transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         objects.push_back(shelf);
-        
-        Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
-	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.72f));
-        objects.push_back(mirror_frame);
 
+        objects.push_back(Entity(bench_mesh, Texture(PATH_TO_TEXTURE "/room/bench_colormap.jpg")));
+        objects.push_back(Entity(lamp_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"))); // TODO : own UV map
+        objects.push_back(Entity(carpet_mesh, Texture(PATH_TO_TEXTURE "/room/carpet_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/carpet_normalmap.jpg")));
+        objects.push_back(Entity(room_mesh, Texture(PATH_TO_TEXTURE "/room/room_colormap.jpg"), Texture(PATH_TO_TEXTURE "/room/room_normalmap.jpg")));
         // Transforms
         // for (Entity& object : objects) {
             // object.transform = this->transform * object.transform;
