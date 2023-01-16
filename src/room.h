@@ -35,6 +35,7 @@ public:
     Mesh mirror_mesh = Mesh(PATH_TO_OBJECTS "/room/mirror_plane.obj");
     Mesh lamp_mesh = Mesh(PATH_TO_OBJECTS "/room/lamp.obj");
     Mesh bulb_mesh = Mesh(PATH_TO_OBJECTS "/pool_ball.obj");
+    Mesh lightswitch_mesh = Mesh(PATH_TO_OBJECTS "/room/lightswitch.obj");
 
     // Pool table
     PoolGame poolGame = PoolGame(
@@ -44,14 +45,11 @@ public:
 		PATH_TO_TEXTURE "/pool_balls/"
 	);
 
-    // Mirror
+    // Special objects
     Mirror mirror;
-
-    // Window
     RoomWindow window;
-
-    // light Bulb
     Entity lightBulb;
+    Entity lightSwitch;
     bool enableLights;
 
     // Generic models
@@ -62,7 +60,8 @@ public:
     RoomScene(Skybox& skybox) : 
         window(window_mesh, Texture(PATH_TO_TEXTURE "/room/window.jpg"), &skybox),
         mirror(mirror_mesh, Texture(PATH_TO_TEXTURE "/room/mirror.JPG")),
-        lightBulb(bulb_mesh, Texture(PATH_TO_TEXTURE "/room/lamp_colormap.jpg"))
+        lightBulb(bulb_mesh, Texture(PATH_TO_TEXTURE "/room/lamp_colormap.jpg")),
+        lightSwitch(lightswitch_mesh, Texture(PATH_TO_TEXTURE "/room/lightswitch.jpg"))
     {        
         Entity mirror_frame(mirror_frame_mesh, Texture(PATH_TO_TEXTURE "/room/woodplanks.jpg"));
 	    mirror_frame.transform = glm::translate(mirror_frame.transform, glm::vec3(0.0f, 2.0f, -1.72f));
@@ -84,12 +83,13 @@ public:
         // window.transform = this->transform;
         mirror.transform = this->transform * glm::translate(mirror.transform, glm::vec3(0.0f, 2.0f, -1.725f));
         lightBulb.transform = this->transform * glm::scale(glm::translate(lightBulb.transform, glm::vec3(0.0f, 2.95f, -0.01f)), glm::vec3(1.7f));
-        
     }
 
 
     void update(double deltaTime) {
         poolGame.update(deltaTime);
+        int switchDir = enableLights ? -1 : 1;
+        lightSwitch.transform = this->transform * glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-2.38f, 1.4f, -0.575f)), glm::radians(switchDir * 7.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     }
 
     void drawRoom(Shader& shader, Shader& windowShader, Shader& lampShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position) {
@@ -97,7 +97,7 @@ public:
         setupShader(shader, perspective, view, position);
 
         poolGame.draw(shader);
-
+        lightSwitch.draw(shader);
         for (Entity& object : objects) {
             object.draw(shader);
         }
