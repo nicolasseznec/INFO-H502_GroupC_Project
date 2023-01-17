@@ -10,14 +10,16 @@ The project consists of a pool game implemented in C++ and OpenGL. The game ther
 <a href="https://youtu.be/jjjQOVE9fjw"><img src="images/thumbnail.jpg" width="300"></a>
 
 The main features are the following :  
+- Simple pool balls animations + Phong shading + Skybox
 - A coherent room environment  
 - A simple collision system  
 - Mirror and windows  
 - Bump mapping  
-- Shadows  
+- Omnidirectional shadow mapping (Point shadows)
+- Geometry shader (used for depth cubemap of Point shadows)
 - Various small mechanics  :
-	- Controls for the cue  
-	-  A light switch  
+    -  Controls for the cue and simple animations  
+    -  A light switch  
 
 ## Dependencies and Setup
 
