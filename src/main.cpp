@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 #endif
 
 	//Create the window
-	GLFWwindow* window = glfwCreateWindow(width, height, "Late night 8 Ball pool", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "8-Ball Game", nullptr, nullptr);
 	if (window == NULL)
 	{
 		glfwTerminate();
