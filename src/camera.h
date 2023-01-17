@@ -128,8 +128,9 @@ public:
 
     void ProcessZoomScroll(float yoffset)
     {
-        float factor = yoffset > 0 ? 0.75f : 1.5f;
-        Zoom *= factor; 
+        // float factor = yoffset > 0 ? 0.75f : 1.5f;
+        // Zoom *= factor; 
+        Zoom -= yoffset * 2.0f;
         if (Zoom < 10.0f)
             Zoom = 10.0f;
         if (Zoom > ZOOM)

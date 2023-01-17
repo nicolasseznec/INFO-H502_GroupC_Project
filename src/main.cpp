@@ -161,9 +161,6 @@ int main(int argc, char* argv[])
     multiplelightingShader.setVector3f("materialColour", materialColour);
     multiplelightingShader.setFloat("shininess", 32.0f);
 
-	windowShader.use();
-	windowShader.setFloat("refractionIndice", 1.0);
-
 	// Skybox
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
 	std::string pathToCubeMap = PATH_TO_TEXTURE "/cubemaps/yokohama3/";
@@ -320,22 +317,20 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
 	multiplelightingShader.setVector3f("lightPos", lightPos);
 
 
-    // directional light
-    // glm::vec3 testdir = glm::vec3(0.0, 0.5, 2.0);
+    // directional light (outside light)
     glm::vec3 testdir = glm::vec3(-1.0f, -0.5f, 0.0f);
     multiplelightingShader.setBool("dirLights[0].enabled", !enableLights);
     multiplelightingShader.setVector3f("dirLights[0].direction", testdir);
-    multiplelightingShader.setVector3f("dirLights[0].ambient", 0.05f, 0.05f, 0.05f);
+    multiplelightingShader.setVector3f("dirLights[0].ambient", 0.06f, 0.06f, 0.06f);
     multiplelightingShader.setVector3f("dirLights[0].diffuse", 0.4f, 0.4f, 0.4f);
     multiplelightingShader.setVector3f("dirLights[0].specular", 0.5f, 0.5f, 0.5f);
 
 
     //Point light
-    // glm::vec3 testlums1 = glm::vec3(0.5, 1.5, 0.0);
-    glm::vec3 testlums1 = glm::vec3(0.0, 2.6, -0.01);
+    glm::vec3 testlums1 = glm::vec3(0.0, 2.8, -0.01);
     multiplelightingShader.setBool("pointLights[0].enabled", enableLights);
     multiplelightingShader.setVector3f("pointLights[0].light_pos", testlums1);
-    multiplelightingShader.setVector3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+	multiplelightingShader.setVector3f("pointLights[0].ambient", 0.24f, 0.24f, 0.24f);
     multiplelightingShader.setVector3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
     multiplelightingShader.setVector3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
     multiplelightingShader.setFloat("pointLights[0].constant", 1.0f);
@@ -350,27 +345,11 @@ void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm
     multiplelightingShader.setVector3f("spotLights[0].light_pos", testspotpos);
     multiplelightingShader.setVector3f("spotLights[0].direction", testspotdir);
     multiplelightingShader.setVector3f("spotLights[0].ambient", 0.0f, 0.0f, 0.0f);
-    multiplelightingShader.setVector3f("spotLights[0].diffuse", 1.0f, 1.0f, 1.0f);
-    multiplelightingShader.setVector3f("spotLights[0].specular", 1.0f, 1.0f, 1.0f);
+    multiplelightingShader.setVector3f("spotLights[0].diffuse", 0.7f, 0.7f, 0.7f);
+    multiplelightingShader.setVector3f("spotLights[0].specular", 0.6f, 0.6f, 0.6f);
     multiplelightingShader.setFloat("spotLights[0].constant", 1.0f);
     multiplelightingShader.setFloat("spotLights[0].linear", 0.09f);
     multiplelightingShader.setFloat("spotLights[0].quadratic", 0.032f);
-    multiplelightingShader.setFloat("spotLights[0].cutOff", glm::cos(glm::radians(12.5f)));
-    multiplelightingShader.setFloat("spotLights[0].outerCutOff", glm::cos(glm::radians(15.0f)));
-	
-
-    //Spotlight 2 (up)
-    glm::vec3 testspotpos2 = glm::vec3(0.0, 1.6, 0.0);
-    glm::vec3 testspotdir2 = glm::vec3(0.0, 1.0, 0.0);
-	multiplelightingShader.setBool("spotLights[1].enabled", false);
-    multiplelightingShader.setVector3f("spotLights[1].light_pos", testspotpos2);
-    multiplelightingShader.setVector3f("spotLights[1].direction", testspotdir2);
-    multiplelightingShader.setVector3f("spotLights[1].ambient", 0.0f, 0.0f, 0.0f);
-    multiplelightingShader.setVector3f("spotLights[1].diffuse", 1.0f, 1.0f, 1.0f);
-    multiplelightingShader.setVector3f("spotLights[1].specular", 1.0f, 1.0f, 1.0f);
-    multiplelightingShader.setFloat("spotLights[1].constant", 1.0f);
-    multiplelightingShader.setFloat("spotLights[1].linear", 0.09f);
-    multiplelightingShader.setFloat("spotLights[1].quadratic", 0.032f);
-    multiplelightingShader.setFloat("spotLights[1].cutOff", glm::cos(glm::radians(12.5f)));
-    multiplelightingShader.setFloat("spotLights[1].outerCutOff", glm::cos(glm::radians(15.0f)));
+	multiplelightingShader.setFloat("spotLights[0].cutOff", glm::cos(glm::radians(17.0f)));
+    multiplelightingShader.setFloat("spotLights[0].outerCutOff", glm::cos(glm::radians(25.0f)));
 }
