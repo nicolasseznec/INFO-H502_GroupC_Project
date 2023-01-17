@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifndef NDEBUG
 	//create a debug context to help with Debugging
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 		throw std::runtime_error("Failed to initialize GLAD");
 	}
 
-	// glEnable(GL_MULTISAMPLE); 
+	glEnable(GL_MULTISAMPLE); 
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -98,11 +98,11 @@ int main(int argc, char* argv[])
 #endif
 
 	/*-----------------------------------------------------------*/
-    // configure depth map FBO
-    // -----------------------
+    // configure depth map FBO for Shadows
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     unsigned int depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
+
     // create depth cubemap texture
     unsigned int depthCubemap;
     glGenTextures(1, &depthCubemap);
@@ -114,25 +114,35 @@ int main(int argc, char* argv[])
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    // attach depth texture as FBO's depth buffer
+    
+	// attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	float near_plane = 0.1f;
+	float far_plane = 25.0f;
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
+
+	// lighting info
+    // -------------
+	glm::vec3 lightPos(0.0f, 2.0f, 0.0f);
+	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
 
 	// Loading shaders
+    // -------------
 	Shader cubeMapShader(PATH_TO_SHADERS "/cubeMap.vert", 
 						 PATH_TO_SHADERS "/cubeMap.frag");
 
-    Shader multiplelightingShader(PATH_TO_SHADERS "/multiple_lights.vert",
-                                  PATH_TO_SHADERS "/multiple_lights.frag");
+    Shader multiplelightingShader(PATH_TO_SHADERS "/genericLighting.vert",
+                                  PATH_TO_SHADERS "/genericLighting.frag");
 
-	Shader windowShader(PATH_TO_SHADERS "/simple.vert", 
+	Shader windowShader(PATH_TO_SHADERS "/genericLighting.vert", 
 						PATH_TO_SHADERS "/window.frag");
 						
-	Shader mirrorShader(PATH_TO_SHADERS "/simple.vert", 
+	Shader mirrorShader(PATH_TO_SHADERS "/genericLighting.vert", 
 						PATH_TO_SHADERS "/mirror.frag");
 
     Shader simpleDepthShader(PATH_TO_SHADERS "/point_shadows_depth.vert",
@@ -142,8 +152,17 @@ int main(int argc, char* argv[])
 	Shader imageShader(PATH_TO_SHADERS "/image.vert",
 				  	   PATH_TO_SHADERS "/image.frag");
 
-	Shader lampShader(PATH_TO_SHADERS "/simple.vert",
+	Shader lampShader(PATH_TO_SHADERS "/genericLighting.vert",
 					   PATH_TO_SHADERS "/lamp.frag");
+
+	// shader configuration
+    // --------------------
+    multiplelightingShader.use();
+    multiplelightingShader.setVector3f("materialColour", materialColour);
+    multiplelightingShader.setFloat("shininess", 32.0f);
+
+	windowShader.use();
+	windowShader.setFloat("refractionIndice", 1.0);
 
 	// Skybox
 	char pathCube[] = PATH_TO_OBJECTS "/cube.obj";
@@ -161,37 +180,13 @@ int main(int argc, char* argv[])
 	// Scene
 	RoomScene room(skybox);
 
-	inputHandler.poolGame = &(room.poolGame);
-
     Camera camera(glm::vec3(-2.0f, 2.5f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -30.0f, -30.0f);
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
+	
+	inputHandler.poolGame = &(room.poolGame);
 	inputHandler.camera = &camera;
-
-	// lighting info
-    // -------------
-	glm::vec3 lightPos(0.0f, 2.0f, 0.0f);
-	// glm::vec3 lightPos(15.0f, 10.0f, 0.0f);
-
-	glm::vec3 materialColour = glm::vec3(0.5f, 0.6, 0.8);
-
-	// shader configuration
-    // --------------------
-
-    multiplelightingShader.use();
-    multiplelightingShader.setVector3f("materialColour", materialColour);
-    multiplelightingShader.setFloat("shininess", 32.0f);
-
-	windowShader.use();
-	windowShader.setFloat("refractionIndice", 1.0);
-
-
-	// 0. create depth cubemap transformation matrices
-	// -----------------------------------------------
-	float near_plane = 0.1f;
-	float far_plane = 25.0f;
-	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
-	// std::vector<glm::mat4> shadowTransforms = createShadowTransforms(shadowProj, lightPos);
+	inputHandler.setupControls();
 
     /*-----------------------------------------------------------*/
 
@@ -214,14 +209,6 @@ int main(int argc, char* argv[])
 	double prevTime = 0;
 	double deltaTime = 0;
 
-	// simpleDepthShader.use();
-	// for (unsigned int i = 0; i < 6; ++i)
-	// 	simpleDepthShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-	// simpleDepthShader.setFloat("far_plane", far_plane);
-	// simpleDepthShader.setVector3f("lightPos", lightPos);
-
-
-	inputHandler.setupControls();
 
 	glfwSwapInterval(1);
 	while (!glfwWindowShouldClose(window)) {
@@ -249,9 +236,8 @@ int main(int argc, char* argv[])
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_CULL_FACE); 
 
-        // 1. render scene to depth cubemap
-        // --------------------------------
-
+        // Render scene to depth cubemap
+        // -----------------------------
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -267,8 +253,8 @@ int main(int argc, char* argv[])
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 2. render scene as normal
-        // -------------------------
+        // Render scene 
+        // ------------
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -291,10 +277,13 @@ int main(int argc, char* argv[])
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 		
+
+		// Render mirrored scene 
+        // ---------------------
 		room.drawMirroredRoom(multiplelightingShader, windowShader, lampShader, mirrorShader, perspective, view, camera.Position);
 		
-		inputHandler.drawControls(imageShader);
 
+		inputHandler.drawControls(imageShader);
 		glfwSwapBuffers(window);
 	}
 	

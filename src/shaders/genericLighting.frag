@@ -101,14 +101,11 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
-    // properties
+    // Normal vector can use normal map if available
     vec3 norm;
     if (useNormalMap) {
         norm = texture(u_normalMap, v_tex).xyz * 2.0 - 1.0;
         norm = normalize(v_TBN * norm);
-
-        // FragColor = vec4(norm * 0.5 + 0.5, 1.0);
-        // return;
     }
     else {
         norm = normalize(v_normal);
@@ -116,41 +113,27 @@ void main()
 
     vec3 viewDir = normalize(u_view_pos - v_frag_coord);
 
-    // == =====================================================
-    // Our lighting is set up in 3 phases: directional, point lights and an optional flashlight
-    // For each phase, a calculate function is defined that calculates the corresponding color
-    // per lamp. In the main() function we take all the calculated colors and sum them up for
-    // this fragment's final color.
-    // == =====================================================
-    // phase 1: directional lighting
+    // directional lighting
     vec3 result = vec3(0.0);
 
     for(int i = 0; i < NR_DIR_LIGHTS; i++) {
         if (!dirLights[i].enabled) continue;
         result += CalcDirLight(dirLights[i], norm, viewDir);
     }
-    //vec3 result = CalcDirLight(dirLights, norm, viewDir);
 
-
-    // phase 2: point lights
+    // point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++) {
         if (!pointLights[i].enabled) continue;
         result += CalcPointLight(pointLights[i], norm, v_frag_coord, viewDir);
     }
 
-
-
-    // phase 3: spot light
+    // spot lights
     for(int i = 0; i < NR_SPOT_LIGHTS; i++) {
         if (!spotLights[i].enabled) continue;
         result += CalcSpotLight(spotLights[i], norm, v_frag_coord, viewDir);
     }
-    //result += CalcSpotLight(spotLights, norm, v_frag_coord, viewDir);
-
+   
     // FragColor = vec4(result, 1.0);
-
-
-
 
 
     float shadow = ShadowCalculation(v_frag_coord) * 0.5;
