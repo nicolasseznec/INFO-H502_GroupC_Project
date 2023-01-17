@@ -27,7 +27,7 @@ public:
         mirroredPerspective = perspective;
 
         glm::vec3 point = glm::vec3(transform * glm::vec4(glm::vec3(0.0f), 1.0f));
-        glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f); // TODO : take into account rotations
+        glm::vec3 normal = glm::vec3(transform * glm::vec4(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f)) - point;
 
         glm::vec4 mirrorPlane = planeFromPointNormal(point, normal);
         glm::mat4 reflection = matrixReflect(mirrorPlane);

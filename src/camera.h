@@ -26,7 +26,6 @@ const float SPEED = 2.0f;
 
 const float M_SENSITIVITY = 0.08f;
 const float KB_SENSITIVITY = 50.0f;
-// const float ZOOM = 45.0f;
 const float ZOOM = 80.0f;
 
 
@@ -82,9 +81,9 @@ public:
         return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
     }
 
-    glm::mat4 GetProjectionMatrix(float fov=45.0, float ratio=1.0, float near=0.01, float far=100.0)
+    glm::mat4 GetProjectionMatrix(float ratio=1.0, float near=0.01, float far=50.0)
     {
-        return glm::perspective(glm::radians(Zoom), ratio, near, far); // TODO : fov not used
+        return glm::perspective(glm::radians(Zoom), ratio, near, far);
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -129,8 +128,9 @@ public:
 
     void ProcessZoomScroll(float yoffset)
     {
-        float factor = yoffset > 0 ? 0.75f : 1.5f;
-        Zoom *= factor; 
+        // float factor = yoffset > 0 ? 0.75f : 1.5f;
+        // Zoom *= factor; 
+        Zoom -= yoffset * 2.0f;
         if (Zoom < 10.0f)
             Zoom = 10.0f;
         if (Zoom > ZOOM)
