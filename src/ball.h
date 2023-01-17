@@ -275,7 +275,6 @@ public:
         Rotation = newRotation * Rotation;
 
         // Place at the right position
-        // glm::mat4 relativePos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.y, 1.0f, Position.x) * res);
         glm::mat4 relativePos =  glm::translate(glm::mat4(1.0f), glm::vec3(Position.y, Position.z + coord_res.y, Position.x) * res);
 
         this->transform = table_transform * relativePos * Rotation;

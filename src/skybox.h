@@ -43,7 +43,6 @@ public:
         }
     }
 
-    // TODO : try to use texture.h ?
     void loadCubemapFace(const char* path, const GLenum& targetFace)
     {
         int imWidth, imHeight, imNrChannels;
@@ -71,7 +70,7 @@ public:
 
     void draw() 
     {
-        // bindTexture()
+        bindTexture();
 		cubeMap.draw();
     }
 

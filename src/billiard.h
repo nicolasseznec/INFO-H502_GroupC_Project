@@ -15,9 +15,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// TEST
-#include <cstdlib>
-
 
 #include "texture.h"
 #include "mesh.h"
@@ -42,11 +39,7 @@ public:
     std::vector<PoolBall> balls;
     std::vector<PoolPocket> pockets;
 
-    // Test variables
-    float timer = 0.0f;
 
-
-    // TODO : proper model and texture management
     PoolGame(
         const char* tableMeshPath,
         const char* tableTexturePath,
@@ -60,28 +53,18 @@ public:
         for (int i = 0; i < 16; i++) {
             std::stringstream ss;
             ss << std::setw(2) << std::setfill('0') << i;
-            Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str()); // TODO : not hardcoding the balls name ?
+            Texture texture = Texture((ballTexturePath + "ball_" + ss.str() + ".jpg").c_str());
             balls.push_back(PoolBall(ballMesh, texture));
         }
-
-        // cue.transform  = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.5f, -1.0f));
 
         setupPockets();
         resetGame();
     }
 
     void update(double deltaTime) {
-        // timer += deltaTime;
-        // if (timer > 5.0f) {
-        //     timer = 0.0f;
-
-        //     balls.at(0).impulse(300.0f, (std::rand() % 360) - 130.0f);
-        // }
-
         for (PoolBall& ball : balls) {
             ball.update(deltaTime);
         }
-
         
         for (int i = 0; i < balls.size(); i++) {
             PoolBall& ball = balls.at(i);
@@ -116,7 +99,6 @@ public:
 
     void resetGame() {
         setupBalls();
-        // ...
     }
 
     void turnCue(int direction, float deltaTime) {

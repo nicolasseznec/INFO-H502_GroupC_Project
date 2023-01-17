@@ -273,7 +273,6 @@ int main(int argc, char* argv[])
 		cubeMapShader.use();
 		cubeMapShader.setMatrix4("V", view);
 		cubeMapShader.setMatrix4("P", perspective);
-		skybox.bindTexture();
 		skybox.draw();
 		glDepthFunc(GL_LESS);
 		

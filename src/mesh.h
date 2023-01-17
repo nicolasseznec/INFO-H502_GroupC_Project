@@ -13,8 +13,6 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-// #include <glm/gtc/matrix_transform.hpp>
-
 
 
 struct Vertex {
@@ -37,9 +35,6 @@ public:
 	int numVertices;
 
 	GLuint VBO, VAO;
-
-	// glm::mat4 model = glm::mat4(1.0);
-
 
 	Mesh(const char* path, bool useNormalMap = false) {
 
@@ -223,43 +218,6 @@ private:
 
 		// std::cout << "Made model with " << numVertices << " vertices" << std::endl;
 	}
-
-	/*
-	void makeMesh2(bool useNormalMap) {
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-
-		//define VBO and VAO as active buffer and active vertex array
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, &vertices[0], GL_STATIC_DRAW);
-
-		int att_pos = 0;
-        int att_tex = 1;
-		int att_norm = 2;
-		int att_tangent = 3;
-		int att_bitangent = 4;
-
-		glEnableVertexAttribArray(att_pos);
-		glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, sizeof(Vertex), (void*)0);
-
-        glEnableVertexAttribArray(att_tex);
-        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Texture));
-		
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_norm, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_tangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-
-		glEnableVertexAttribArray(att_norm);
-		glVertexAttribPointer(att_bitangent, 3, GL_FLOAT, false, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-
-		//desactive the buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-	*/
 };
 
 #endif /* MESH_H */
