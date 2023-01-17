@@ -32,8 +32,10 @@
 std::vector<glm::mat4> createShadowTransforms(glm::mat4 shadowProj, glm::vec3 lightPos);
 void setupLightShader(Shader& multiplelightingShader, glm::mat4 perspective, glm::mat4 view, glm::vec3 position, glm::vec3 lightPos, float far_plane, bool enabledLights);
 
-const int width = 800;
-const int height = 800;
+// const int width = 800;
+// const int height = 800;
+const int width = 1000;
+const int height = 1000;
 
 
 
