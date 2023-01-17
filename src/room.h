@@ -135,7 +135,7 @@ public:
 		mirror.draw(mirrorShader);
 
 
-		// 2. Render the reflected scene, but only on the mirror (where stencil==1)
+		// Render the reflected scene, but only on the mirror (where stencil==1)
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);

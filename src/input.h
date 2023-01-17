@@ -56,33 +56,17 @@ public:
 			glfwSetWindowShouldClose(window, true);
 		
 		// Press Right CTRL to switch between normal cursor and mouse camera aim
-		if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS && !cursorKeyPressed) {
-			cursorKeyPressed = true;
+		if (wasKeyPressed(window, GLFW_KEY_RIGHT_CONTROL, cursorKeyPressed)) {
 			firstMouse = true;
 			cursorEnabled = !cursorEnabled;
 			glfwSetInputMode(window, GLFW_CURSOR, cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_RELEASE) {
-			cursorKeyPressed = false;
-		}
 		
 		// Press F1 to display/hide controls
-		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS && !controlsPressed) {
-			controlsPressed = true;
-			displayControls = !displayControls;
-		}
-		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE) {
-			controlsPressed = false;
-		}
+		if (wasKeyPressed(window, GLFW_KEY_F1, controlsPressed)) displayControls = !displayControls;
 
 		// Press F to turn lights on/off
-		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && !lightsPressed) {
-			lightsPressed = true;
-			enabledLights = !enabledLights;
-		}
-		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE) {
-			lightsPressed = false;
-		}
+		if (wasKeyPressed(window, GLFW_KEY_F, lightsPressed)) enabledLights = !enabledLights;
 
 		processCameraInput(window, deltaTime);
 		processPoolInput(window, deltaTime);
@@ -216,6 +200,17 @@ public:
 		glBindTexture(GL_TEXTURE_2D, controlsTex);
 		shader.setInteger("u_texture", 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	bool wasKeyPressed(GLFWwindow* window, int key, bool& pressed) {
+		if (glfwGetKey(window, key) == GLFW_PRESS && !pressed) {
+			pressed = true;
+			return true;
+		}
+		if (glfwGetKey(window, key) == GLFW_RELEASE) {
+			pressed = false;
+		}
+		return false;
 	}
 };
 
