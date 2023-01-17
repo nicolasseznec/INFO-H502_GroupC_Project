@@ -7,7 +7,7 @@ ___
 
 The project consists of a pool game implemented in C++ and OpenGL. The game therefore obviously includes the essential elements of a pool game, namely: a pool table, a cue and the balls. These elements are arranged in a room, itself covered by a skybox of a street environment. Since the focus was on the graphical aspect of the game, it was decided to keep the game itself simple. Indeed, the game controls available allow to play a solo game by manually performing the game actions usually associated with the pool game, i.e.: enabling/disabling the use of the pool cue, rotating the pool cue, adjusting the shooting power, shooting, resetting the cue ball position and resetting the game. 
 
-<a href="https://youtu.be/jjjQOVE9fjw"><img src="images/thumbnail.JPG" width="300"></a>
+<a href="https://youtu.be/jjjQOVE9fjw"><img src="images/thumbnail.jpg" width="300"></a>
 
 The main features are the following :  
 - A coherent room environment  
